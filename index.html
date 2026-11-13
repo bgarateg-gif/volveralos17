@@ -602,8 +602,8 @@ function initApp() {
   };
 
   // Punto de corte de respaldo solo si el MIDI de piano viniera en 1 sola pista y 1 canal:
-  // 55 = Sol3 (centro exacto de tu teclado G2–G4) | 60 = Do4 (Do central)
-  const NOTA_DIVISION = 55;
+  // 57 = La3 (centro exacto de tu teclado A2–A4) | 60 = Do4 (Do central)
+  const NOTA_DIVISION = 57;
 
   /**
    * DEFINICIÓN DE ACORDES (POR COMPÁS Y PULSO):
@@ -630,11 +630,12 @@ function initApp() {
   };
 
   /* ============================================================================
-     2. RANGO DEL PIANO: DOS OCTAVAS EXACTAS DE G2 (43) A G4 (67)
+     2. RANGO DEL PIANO: DOS OCTAVAS EXACTAS DE A2 (45) A A4 (69)
      ============================================================================ */
-  const MIN_MIDI = 43; // G2 (Sol 2)
-  const MAX_MIDI = 67; // G4 (Sol 4)
-  const NOTE_NAMES_ES = ["Do", "Do#", "Re", "Re#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"];
+  const MIN_MIDI = 45; // A2 (La 2)
+  const MAX_MIDI = 69; // A4 (La 4)
+  // Nomenclatura adaptada a la tonalidad (con Sib en lugar de La#)
+  const NOTE_NAMES_ES = ["Do", "Do#", "Re", "Mib", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "Sib", "Si"];
   const BLACK_PCS = new Set([1, 3, 6, 8, 10]);
 
   const PIANO_KEYS = [];
@@ -667,31 +668,125 @@ function initApp() {
     }
   }
 
-  /* Ajusta notas fuera de G2..G4 por octavas para que siempre se vean en el teclado */
-  function foldToVisibleRange(midi) {
-    let m = midi;
+  /**
+   * Calcula el desplazamiento óptimo en octavas completas (-24, -12, 0, +12, +24)
+   * para que toda la mano encaje dentro de A2..A4 manteniendo intacto el contorno
+   * melódico (evitando que notas como Sol4 - La4 - Do#5 se partan en octavas distintas).
+   */
+  function computeBestOctaveShift(rawList) {
+    if (!rawList.length) return 0;
+    const candidates = [0, -12, 12, -24, 24];
+    let bestShift = 0;
+    let bestInRange = -1;
+    let bestPenalty = Infinity;
+
+    for (const shift of candidates) {
+      let inRange = 0;
+      let penalty = 0;
+      for (const n of rawList) {
+        const m = n.midi + shift;
+        if (m >= MIN_MIDI && m <= MAX_MIDI) {
+          inRange++;
+        } else if (m < MIN_MIDI) {
+          penalty += (MIN_MIDI - m);
+        } else {
+          penalty += (m - MAX_MIDI);
+        }
+      }
+      if (inRange > bestInRange || (inRange === bestInRange && penalty < bestPenalty)) {
+        bestInRange = inRange;
+        bestPenalty = penalty;
+        bestShift = shift;
+      }
+    }
+    return bestShift;
+  }
+
+  function mapNoteToVisibleKey(midi, handShift) {
+    let m = midi + handShift;
     while (m < MIN_MIDI) m += 12;
     while (m > MAX_MIDI) m -= 12;
     return m;
   }
 
   /* ============================================================================
-     3. SINTETIZADORES DE AUDIO (Tone.js)
+     3. SONIDO REAL DE PIANO ACÚSTICO Y MELODÍA (Tone.js)
      ============================================================================ */
-  /* Melodía principal de fondo en todo momento */
-  const vibrato = new Tone.Vibrato(4.5, 0.06).toDestination();
-  const melodySynth = new Tone.PolySynth(Tone.Synth, {
-    oscillator: { type: "custom", partials: [1, 0.25, 0.07] },
-    envelope: { attack: 0.04, decay: 0.12, sustain: 0.82, release: 0.18 }
-  }).connect(vibrato);
-  melodySynth.volume.value = -7;
-
-  /* Piano para ambas manos */
-  const pianoSynth = new Tone.PolySynth(Tone.Synth, {
-    oscillator: { type: "triangle" },
-    envelope: { attack: 0.015, decay: 0.25, sustain: 0.45, release: 0.35 }
+  /* Reverb sutil de sala para calidez acústica */
+  const roomReverb = new Tone.Reverb({
+    decay: 1.4,
+    preDelay: 0.01,
+    wet: 0.18
   }).toDestination();
-  pianoSynth.volume.value = -5;
+
+  /* Piano de respaldo acústico (modelado armónico con filtro dinámico, por si no hay red) */
+  const pianoFallbackFilter = new Tone.Filter({
+    type: "lowpass",
+    frequency: 2600,
+    Q: 0.7
+  }).connect(roomReverb);
+
+  const pianoFallbackSynth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: {
+      type: "custom",
+      partials: [1, 0.55, 0.28, 0.16, 0.08, 0.04, 0.015]
+    },
+    envelope: {
+      attack: 0.006,
+      decay: 0.65,
+      sustain: 0.18,
+      release: 0.45
+    }
+  }).connect(pianoFallbackFilter);
+  pianoFallbackSynth.volume.value = -4;
+
+  /* Muestreador de Piano Acústico Real (Salamander Grand Piano) */
+  let pianoSamplerLoaded = false;
+  const pianoSampler = new Tone.Sampler({
+    urls: {
+      "A2": "A2.mp3",
+      "C3": "C3.mp3",
+      "D#3": "D%233.mp3",
+      "F#3": "F%233.mp3",
+      "A3": "A3.mp3",
+      "C4": "C4.mp3",
+      "D#4": "D%234.mp3",
+      "F#4": "F%234.mp3",
+      "A4": "A4.mp3",
+      "C5": "C5.mp3"
+    },
+    release: 0.55,
+    baseUrl: "https://tonejs.github.io/audio/salamander/",
+    onload: () => {
+      pianoSamplerLoaded = true;
+    },
+    onerror: () => {
+      pianoSamplerLoaded = false;
+    }
+  }).connect(roomReverb);
+  pianoSampler.volume.value = 1;
+
+  function triggerPianoNote(midi, durSec, time, vel) {
+    const freqOrNote = Tone.Frequency(midi, "midi").toNote();
+    if (pianoSamplerLoaded) {
+      pianoSampler.triggerAttackRelease(freqOrNote, durSec, time, vel);
+    } else {
+      pianoFallbackSynth.triggerAttackRelease(freqOrNote, durSec, time, vel);
+    }
+  }
+
+  function releaseAllPiano() {
+    try { pianoSampler.releaseAll(); } catch (e) {}
+    try { pianoFallbackSynth.releaseAll(); } catch (e) {}
+  }
+
+  /* Melodía principal de fondo en todo momento (timbre dulce de flauta) */
+  const vibrato = new Tone.Vibrato(4.5, 0.05).connect(roomReverb);
+  const melodySynth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "custom", partials: [1, 0.22, 0.05] },
+    envelope: { attack: 0.04, decay: 0.12, sustain: 0.80, release: 0.18 }
+  }).connect(vibrato);
+  melodySynth.volume.value = -8;
 
   /* Metrónomo suave solo para el compás de cuenta previa */
   const clickSynth = new Tone.MembraneSynth({
@@ -699,7 +794,7 @@ function initApp() {
     octaves: 2,
     envelope: { attack: 0.001, decay: 0.07, sustain: 0, release: 0.01 }
   }).toDestination();
-  clickSynth.volume.value = -12;
+  clickSynth.volume.value = -13;
 
   /* ============================================================================
      4. CARGA Y SEPARACIÓN AUTOMÁTICA DE MANOS DESDE MUSESCORE
@@ -770,7 +865,6 @@ function initApp() {
     if (validTracks.length >= 2) {
       validTracks.sort((a, b) => {
         if (Math.abs(a.avgPitch - b.avgPitch) > 0.5) return a.avgPitch - b.avgPitch;
-        // En caso de empate exacto de altura, en MuseScore la pista inferior tiene índice mayor
         return b.idx - a.idx;
       });
       const leftRaw = validTracks[0].notes.sort((a, b) => a.startBeatRaw - b.startBeatRaw);
@@ -835,7 +929,6 @@ function initApp() {
     const sourceNotes = leftNotes.length > 0 ? leftNotes : rightNotes;
     if (!sourceNotes.length) return [];
 
-    // Agrupar notas simultáneas (mismo inicio) para leer la nota fundamental (bajo)
     const groups = [];
     for (const n of sourceNotes) {
       const last = groups[groups.length - 1];
@@ -876,16 +969,7 @@ function initApp() {
       ? refMidi.header.timeSignatures[0].timeSignature[0]
       : 4;
     const num = Math.min(Math.max(rawNum || 4, 2), 6);
-    const lead = num; // 1 compás de preparación visual antes de que caigan las notas
-
-    const mapHandNotes = (rawList, hand) => rawList.map(n => ({
-      midi: n.midi,
-      displayMidi: foldToVisibleRange(n.midi),
-      hand,
-      startBeat: n.startBeatRaw + lead,
-      durBeats: n.durBeats,
-      vel: n.vel
-    }));
+    const lead = num;
 
     let leftRaw = [];
     let rightRaw = [];
@@ -899,9 +983,24 @@ function initApp() {
       rightRaw = extractRawNotes(rightAltMidi);
     }
 
-    const melodyNotes = mapHandNotes(extractRawNotes(melodyMidi), "melody");
-    const leftNotes   = mapHandNotes(leftRaw, "left");
-    const rightNotes  = mapHandNotes(rightRaw, "right");
+    const melodyRaw = extractRawNotes(melodyMidi);
+
+    // Ajuste inteligente por octava completa para cada mano para conservar el contorno melódico
+    const leftShift  = computeBestOctaveShift(leftRaw);
+    const rightShift = computeBestOctaveShift(rightRaw);
+
+    const mapHandNotes = (rawList, hand, shift) => rawList.map(n => ({
+      midi: n.midi,
+      displayMidi: mapNoteToVisibleKey(n.midi, shift),
+      hand,
+      startBeat: n.startBeatRaw + lead,
+      durBeats: n.durBeats,
+      vel: n.vel
+    }));
+
+    const melodyNotes = mapHandNotes(melodyRaw, "melody", 0);
+    const leftNotes   = mapHandNotes(leftRaw,   "left",   leftShift);
+    const rightNotes  = mapHandNotes(rightRaw,  "right",  rightShift);
 
     const chords = buildChordTimeline(leftNotes, rightNotes, num, lead);
 
@@ -926,17 +1025,17 @@ function initApp() {
       const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.94));
       T.schedule(time => {
         const dSec = Math.max(new Tone.Ticks(durTicks).toSeconds(), 0.08);
-        melodySynth.triggerAttackRelease(Tone.Frequency(n.midi, "midi").toFrequency(), dSec, time, n.vel * 0.85);
+        melodySynth.triggerAttackRelease(Tone.Frequency(n.midi, "midi").toFrequency(), dSec, time, n.vel * 0.80);
       }, startTicks + "i");
     });
 
-    // Piano (mano izquierda y mano derecha)
+    // Piano acústico (mano izquierda y mano derecha)
     [...leftNotes, ...rightNotes].forEach(n => {
       const startTicks = Math.round(n.startBeat * ppq);
-      const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.92));
+      const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.94));
       T.schedule(time => {
-        const dSec = Math.max(new Tone.Ticks(durTicks).toSeconds(), 0.08);
-        pianoSynth.triggerAttackRelease(Tone.Frequency(n.midi, "midi").toFrequency(), dSec, time, n.vel * 0.9);
+        const dSec = Math.max(new Tone.Ticks(durTicks).toSeconds(), 0.10);
+        triggerPianoNote(n.midi, dSec, time, n.vel * 0.92);
       }, startTicks + "i");
     });
 
@@ -966,7 +1065,6 @@ function initApp() {
     let leftAltMidi = null;
     let rightAltMidi = null;
 
-    // Si no existe ./midis/piano.mid, buscar respaldo pianoizquierda.mid y pianoderecha.mid
     if (!pianoMidi) {
       const [lRes, rRes] = await Promise.allSettled([
         fetchMidiFile(MIDI_FILES.leftAlt),
@@ -1059,7 +1157,7 @@ function initApp() {
     Tone.Transport.stop();
     posTicks = 0;
     melodySynth.releaseAll();
-    pianoSynth.releaseAll();
+    releaseAllPiano();
     setPlayButtonState(false);
     el("seek").value = 0;
     lastRenderedChord = "";
@@ -1073,7 +1171,7 @@ function initApp() {
       posTicks = ticksNow();
       T.pause();
       melodySynth.releaseAll();
-      pianoSynth.releaseAll();
+      releaseAllPiano();
       setPlayButtonState(false);
     } else {
       if (posTicks / T.PPQ >= song.endBeat - 0.01) posTicks = 0;
@@ -1166,7 +1264,7 @@ function initApp() {
       posTicks = ticksNow();
       Tone.Transport.pause();
       melodySynth.releaseAll();
-      pianoSynth.releaseAll();
+      releaseAllPiano();
     }
   });
 
@@ -1188,13 +1286,13 @@ function initApp() {
     if (!dragging && Tone.Transport.state === "started") {
       Tone.Transport.pause();
       melodySynth.releaseAll();
-      pianoSynth.releaseAll();
+      releaseAllPiano();
       Tone.Transport.start(undefined, posTicks + "i");
     }
   });
 
   /* ============================================================================
-     7. RENDERIZADO SYNTHESIA (CAÍDA DE NOTAS + TECLADO DE 2 OCTAVAS G2–G4)
+     7. RENDERIZADO SYNTHESIA (CAÍDA DE NOTAS + TECLADO DE 2 OCTAVAS A2–A4)
      ============================================================================ */
   const cv = el("cv");
   const ctx = cv.getContext("2d");
@@ -1223,7 +1321,7 @@ function initApp() {
     }
 
     L.fallH = Math.max(80, H - L.keyH);
-    L.whiteW = W / WHITE_KEYS.length; // 15 teclas blancas de G2 a G4
+    L.whiteW = W / WHITE_KEYS.length; // 15 teclas blancas de A2 a A4
     L.blackW = L.whiteW * 0.60;
     L.blackH = L.keyH * 0.62;
 
@@ -1280,7 +1378,7 @@ function initApp() {
     if (!key) return;
     await Tone.start();
     manualPressedMidi = key.midi;
-    pianoSynth.triggerAttackRelease(Tone.Frequency(key.midi, "midi").toFrequency(), "8n");
+    triggerPianoNote(key.midi, "4n", undefined, 0.85);
   });
 
   ["pointerup", "pointercancel", "pointerleave"].forEach(ev => {
@@ -1421,7 +1519,7 @@ function initApp() {
   function drawPianoKeyboard(activeHandsByMidi) {
     const topY = L.fallH;
 
-    // 1. 15 teclas blancas (G2 a G4)
+    // 1. 15 teclas blancas (A2 a A4)
     for (const wk of WHITE_KEYS) {
       const hand = activeHandsByMidi.get(wk.midi);
       const isManual = manualPressedMidi === wk.midi;
@@ -1448,7 +1546,7 @@ function initApp() {
       }
     }
 
-    // 2. 10 teclas negras
+    // 2. 10 teclas negras (con Sib en lugar de La#)
     for (const bk of BLACK_KEYS) {
       const hand = activeHandsByMidi.get(bk.midi);
       const isManual = manualPressedMidi === bk.midi;
@@ -1465,6 +1563,16 @@ function initApp() {
       ctx.lineWidth = 1.2;
       ctx.strokeStyle = hand ? "#FFFFFF" : "#0F172A";
       ctx.stroke();
+
+      // Etiqueta de Sib en las teclas negras de Bb cuando hay ancho suficiente
+      if (bk.pc === 10 && bk.w >= 18) {
+        const fontSize = Math.max(8, Math.min(11, Math.round(bk.w * 0.42)));
+        ctx.fillStyle = hand ? "#052E16" : "#CBD5E1";
+        ctx.font = `800 ${fontSize}px 'Nunito', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.fillText("Sib", bk.x + bk.w / 2, topY + bk.h - 5);
+      }
       ctx.restore();
     }
 
