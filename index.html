@@ -1070,15 +1070,15 @@ function initApp() {
   function updateAudioMix() {
     if (violinMode) {
       // Baja el volumen del teclado y la voz, y deja más fuerte el violín (especialmente violín 2)
-      pianoSampler.volume.value = -11;
-      pianoFallbackSynth.volume.value = -16;
-      melodySynth.volume.value = -19;
+      pianoSampler.volume.value = -5;
+      pianoFallbackSynth.volume.value = -10;
+      melodySynth.volume.value = -3;
       violin1Synth.volume.value = -1;
-      violin2Synth.volume.value = 4.5;
+      violin2Synth.volume.value = 2.5;
     } else {
       pianoSampler.volume.value = 1;
       pianoFallbackSynth.volume.value = -4;
-      melodySynth.volume.value = -8;
+      melodySynth.volume.value = -3;
       violin1Synth.volume.value = -Infinity;
       violin2Synth.volume.value = -Infinity;
       releaseAllViolin();
