@@ -601,16 +601,19 @@ function initApp() {
     rightAlt:   "./midis/pianoderecha.mid"    // Respaldo opcional si se exportan por separado
   };
 
+  // Los acordes se evalúan en bloques de 3 pulsos (pulsos 1, 2 y 3 = mismo acorde)
+  const PULSOS_POR_ACORDE = 3;
+
   // Punto de corte de respaldo solo si el MIDI de piano viniera en 1 sola pista y 1 canal:
-  // 57 = La3 (centro exacto de tu teclado A2–A4) | 60 = Do4 (Do central)
-  const NOTA_DIVISION = 57;
+  // 48 = Do3 (centro del rango A1–E4)
+  const NOTA_DIVISION = 48;
 
   /**
-   * DEFINICIÓN DE ACORDES (POR COMPÁS Y PULSO):
+   * DEFINICIÓN MANUAL DE ACORDES (OPCIONAL, POR COMPÁS DE 3 PULSOS):
    * - Si dejas esta lista vacía ([]), la app detecta AUTOMÁTICAMENTE el acorde
-   *   leyendo la nota fundamental que toca la mano izquierda (Re, Fa, Sol, Do, La).
-   * - Si quieres fijar tú mismo el momento exacto de cada acorde, descomenta y
-   *   edita las líneas de abajo indicando el compás (1, 2, 3...) y el pulso (1, 2, 3, 4):
+   *   cada 3 pulsos leyendo la nota fundamental del pulso 1 (ej. Re2 - La2 - Re3/Fa3
+   *   en pulsos 1, 2 y 3 se reconoce como un único acorde "Re menor" desde el pulso 1).
+   * - Si el mismo acorde continúa en el siguiente grupo de 3 pulsos, no se repite.
    */
   const ACORDES_MANUALES = [
     // { compas: 1, pulso: 1, acorde: "Re menor" },
@@ -630,10 +633,10 @@ function initApp() {
   };
 
   /* ============================================================================
-     2. RANGO DEL PIANO: DOS OCTAVAS EXACTAS DE A2 (45) A A4 (69)
+     2. RANGO DEL PIANO: DE A1 (33) A E4 (64)
      ============================================================================ */
-  const MIN_MIDI = 45; // A2 (La 2)
-  const MAX_MIDI = 69; // A4 (La 4)
+  const MIN_MIDI = 33; // A1 (La 1)
+  const MAX_MIDI = 64; // E4 (Mi 4)
   // Nomenclatura adaptada a la tonalidad (con Sib en lugar de La#)
   const NOTE_NAMES_ES = ["Do", "Do#", "Re", "Mib", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "Sib", "Si"];
   const BLACK_PCS = new Set([1, 3, 6, 8, 10]);
@@ -670,8 +673,8 @@ function initApp() {
 
   /**
    * Calcula el desplazamiento óptimo en octavas completas (-24, -12, 0, +12, +24)
-   * para que toda la mano encaje dentro de A2..A4 manteniendo intacto el contorno
-   * melódico (evitando que notas como Sol4 - La4 - Do#5 se partan en octavas distintas).
+   * para que toda la mano encaje dentro de A1..E4 manteniendo intacto el contorno
+   * melódico (evitando que notas ascendentes como Sol - La - Do# se partan de octava).
    */
   function computeBestOctaveShift(rawList) {
     if (!rawList.length) return 0;
@@ -740,10 +743,14 @@ function initApp() {
   }).connect(pianoFallbackFilter);
   pianoFallbackSynth.volume.value = -4;
 
-  /* Muestreador de Piano Acústico Real (Salamander Grand Piano) */
+  /* Muestreador de Piano Acústico Real (Salamander Grand Piano, incluyendo graves desde A1) */
   let pianoSamplerLoaded = false;
   const pianoSampler = new Tone.Sampler({
     urls: {
+      "A1": "A1.mp3",
+      "C2": "C2.mp3",
+      "D#2": "D%232.mp3",
+      "F#2": "F%232.mp3",
       "A2": "A2.mp3",
       "C3": "C3.mp3",
       "D#3": "D%233.mp3",
@@ -797,7 +804,7 @@ function initApp() {
   clickSynth.volume.value = -13;
 
   /* ============================================================================
-     4. CARGA Y SEPARACIÓN AUTOMÁTICA DE MANOS DESDE MUSESCORE
+     4. CARGA, SEPARACIÓN DE MANOS Y DETECCIÓN DE ACORDES CADA 3 PULSOS
      ============================================================================ */
   let song = {
     leftNotes: [],
@@ -805,8 +812,8 @@ function initApp() {
     melodyNotes: [],
     chords: [],
     bpm: 100,
-    num: 4,
-    lead: 4,
+    num: 3,
+    lead: 3,
     endBeat: 1,
     loaded: false
   };
@@ -907,52 +914,85 @@ function initApp() {
     };
   }
 
-  function buildChordTimeline(leftNotes, rightNotes, numBeats, leadBeats) {
+  /**
+   * Construye la línea de tiempo de acordes agrupados de 3 pulsos en 3 pulsos:
+   * - En cada bloque de 3 pulsos (pulsos 1, 2 y 3), lee la nota fundamental del
+   *   primer ataque del bloque (ej. Re2 en pulso 1 de "Re2 - La2 - Re3/Fa3").
+   * - Todos los 3 pulsos pertenecen a ese mismo acorde.
+   * - Solo se registra cuando aparece por primera vez o cambia a un acorde distinto.
+   */
+  function buildChordTimeline(leftNotes, rightNotes, leadBeats) {
     if (ACORDES_MANUALES.length > 0) {
-      return ACORDES_MANUALES
-        .map(item => {
-          const compas = Math.max(1, item.compas || 1);
-          const pulso = Math.max(1, item.pulso || 1);
-          const beat = leadBeats + (compas - 1) * numBeats + (pulso - 1);
+      const timeline = [];
+      let lastChordName = "";
+      const sortedManual = [...ACORDES_MANUALES].sort((a, b) => {
+        const beatA = (Math.max(1, a.compas || 1) - 1) * PULSOS_POR_ACORDE + (Math.max(1, a.pulso || 1) - 1);
+        const beatB = (Math.max(1, b.compas || 1) - 1) * PULSOS_POR_ACORDE + (Math.max(1, b.pulso || 1) - 1);
+        return beatA - beatB;
+      });
+
+      for (const item of sortedManual) {
+        const compas = Math.max(1, item.compas || 1);
+        const pulso = Math.max(1, item.pulso || 1);
+        const beat = leadBeats + (compas - 1) * PULSOS_POR_ACORDE + (pulso - 1);
+        const nombre = item.acorde.trim();
+        if (nombre && nombre !== lastChordName) {
           const foundEntry = Object.values(ACORDES_POR_FUNDAMENTAL).find(
-            c => c.nombre.toLowerCase() === item.acorde.trim().toLowerCase()
+            c => c.nombre.toLowerCase() === nombre.toLowerCase()
           );
-          return {
+          timeline.push({
             startBeat: beat,
-            nombre: item.acorde.trim(),
+            nombre,
             nota: foundEntry ? foundEntry.nota : ""
-          };
-        })
-        .sort((a, b) => a.startBeat - b.startBeat);
+          });
+          lastChordName = nombre;
+        }
+      }
+      return timeline;
     }
 
     const sourceNotes = leftNotes.length > 0 ? leftNotes : rightNotes;
     if (!sourceNotes.length) return [];
 
-    const groups = [];
+    // Agrupar notas por bloques de 3 pulsos (0..3, 3..6, 6..9, etc.)
+    const blocks = new Map();
     for (const n of sourceNotes) {
-      const last = groups[groups.length - 1];
-      if (last && Math.abs(n.startBeat - last.startBeat) < 0.06) {
-        if (n.midi < last.lowestMidi) last.lowestMidi = n.midi;
+      const relBeat = Math.max(0, n.startBeat - leadBeats);
+      const blockIdx = Math.floor((relBeat + 0.05) / PULSOS_POR_ACORDE);
+
+      if (!blocks.has(blockIdx)) {
+        blocks.set(blockIdx, {
+          blockIdx,
+          firstBeat: n.startBeat,
+          lowestMidi: n.midi
+        });
       } else {
-        groups.push({ startBeat: n.startBeat, lowestMidi: n.midi });
+        const blk = blocks.get(blockIdx);
+        // Tomar la nota más grave del primer ataque dentro de este bloque de 3 pulsos (pulso 1)
+        if (Math.abs(n.startBeat - blk.firstBeat) < 0.08) {
+          if (n.midi < blk.lowestMidi) blk.lowestMidi = n.midi;
+        }
       }
     }
 
+    const sortedBlocks = [...blocks.values()].sort((a, b) => a.blockIdx - b.blockIdx);
     const timeline = [];
     let lastChordName = "";
-    for (const g of groups) {
-      const pc = ((g.lowestMidi % 12) + 12) % 12;
+
+    for (const blk of sortedBlocks) {
+      const pc = ((blk.lowestMidi % 12) + 12) % 12;
       const chordInfo = ACORDES_POR_FUNDAMENTAL[pc];
+      // Solo registrar la primera vez que aparece este acorde (no repetir si los siguientes 3 pulsos mantienen el mismo acorde)
       if (chordInfo && chordInfo.nombre !== lastChordName) {
         timeline.push({
-          startBeat: g.startBeat,
+          startBeat: blk.firstBeat,
           nombre: chordInfo.nombre,
           nota: chordInfo.nota
         });
         lastChordName = chordInfo.nombre;
       }
     }
+
     return timeline;
   }
 
@@ -967,9 +1007,9 @@ function initApp() {
     const bpm = (refMidi && refMidi.header.tempos.length) ? refMidi.header.tempos[0].bpm : 100;
     const rawNum = (refMidi && refMidi.header.timeSignatures.length)
       ? refMidi.header.timeSignatures[0].timeSignature[0]
-      : 4;
-    const num = Math.min(Math.max(rawNum || 4, 2), 6);
-    const lead = num;
+      : PULSOS_POR_ACORDE;
+    const num = Math.min(Math.max(rawNum || PULSOS_POR_ACORDE, 2), 6);
+    const lead = PULSOS_POR_ACORDE; // 1 compás de 3 pulsos de preparación visual
 
     let leftRaw = [];
     let rightRaw = [];
@@ -985,7 +1025,7 @@ function initApp() {
 
     const melodyRaw = extractRawNotes(melodyMidi);
 
-    // Ajuste inteligente por octava completa para cada mano para conservar el contorno melódico
+    // Ajuste inteligente por octava completa para cada mano dentro de A1..E4
     const leftShift  = computeBestOctaveShift(leftRaw);
     const rightShift = computeBestOctaveShift(rightRaw);
 
@@ -1002,10 +1042,10 @@ function initApp() {
     const leftNotes   = mapHandNotes(leftRaw,   "left",   leftShift);
     const rightNotes  = mapHandNotes(rightRaw,  "right",  rightShift);
 
-    const chords = buildChordTimeline(leftNotes, rightNotes, num, lead);
+    const chords = buildChordTimeline(leftNotes, rightNotes, lead);
 
     const allNotes = [...melodyNotes, ...leftNotes, ...rightNotes];
-    const maxBeat = allNotes.reduce((acc, n) => Math.max(acc, n.startBeat + n.durBeats), lead + 4);
+    const maxBeat = allNotes.reduce((acc, n) => Math.max(acc, n.startBeat + n.durBeats), lead + 3);
 
     song = {
       melodyNotes,
@@ -1039,7 +1079,7 @@ function initApp() {
       }, startTicks + "i");
     });
 
-    // Clic de cuenta previa solo durante el primer compás (lead)
+    // Clic de cuenta previa solo durante el primer compás de 3 pulsos (lead)
     T.scheduleRepeat(time => {
       const b = Math.round(T.getTicksAtTime(time) / ppq);
       if (b < lead) {
@@ -1292,7 +1332,7 @@ function initApp() {
   });
 
   /* ============================================================================
-     7. RENDERIZADO SYNTHESIA (CAÍDA DE NOTAS + TECLADO DE 2 OCTAVAS A2–A4)
+     7. RENDERIZADO SYNTHESIA (CAÍDA DE NOTAS + TECLADO DE A1 A E4)
      ============================================================================ */
   const cv = el("cv");
   const ctx = cv.getContext("2d");
@@ -1302,8 +1342,8 @@ function initApp() {
   const L = {
     keyH: 130,
     fallH: 320,
-    whiteW: 50,
-    blackW: 30,
+    whiteW: 42,
+    blackW: 25,
     blackH: 80,
     pxPerBeat: 110
   };
@@ -1321,7 +1361,7 @@ function initApp() {
     }
 
     L.fallH = Math.max(80, H - L.keyH);
-    L.whiteW = W / WHITE_KEYS.length; // 15 teclas blancas de A2 a A4
+    L.whiteW = W / WHITE_KEYS.length; // 19 teclas blancas de A1 a E4
     L.blackW = L.whiteW * 0.60;
     L.blackH = L.keyH * 0.62;
 
@@ -1419,13 +1459,14 @@ function initApp() {
       ctx.stroke();
     }
 
-    const m = song.num || 4;
+    // Líneas horizontales cada 3 pulsos (cada bloque de acorde)
+    const m = PULSOS_POR_ACORDE;
     const maxVisibleBeat = beat + L.fallH / L.pxPerBeat + 1;
     let b = Math.max(0, Math.floor(beat / m) * m);
     for (; b <= maxVisibleBeat; b += m) {
       const y = L.fallH - (b - beat) * L.pxPerBeat;
       if (y < 0 || y > L.fallH) continue;
-      ctx.strokeStyle = "rgba(148, 163, 184, 0.16)";
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.18)";
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(0, y);
@@ -1491,8 +1532,8 @@ function initApp() {
       ctx.strokeStyle = isActive ? "#FFFFFF" : borderColor;
       ctx.stroke();
 
-      if (drawH >= 20 && bw >= 18) {
-        const fontSize = Math.max(10, Math.min(13, Math.round(bw * 0.34)));
+      if (drawH >= 20 && bw >= 16) {
+        const fontSize = Math.max(9, Math.min(13, Math.round(bw * 0.35)));
         ctx.fillStyle = textColor;
         ctx.font = `800 ${fontSize}px 'Nunito', sans-serif`;
         ctx.textAlign = "center";
@@ -1519,7 +1560,7 @@ function initApp() {
   function drawPianoKeyboard(activeHandsByMidi) {
     const topY = L.fallH;
 
-    // 1. 15 teclas blancas (A2 a A4)
+    // 1. 19 teclas blancas (A1 a E4)
     for (const wk of WHITE_KEYS) {
       const hand = activeHandsByMidi.get(wk.midi);
       const isManual = manualPressedMidi === wk.midi;
@@ -1535,9 +1576,9 @@ function initApp() {
       ctx.lineWidth = 1;
       ctx.strokeRect(wk.x + 0.5, topY + 0.5, wk.w - 1, wk.h - 1);
 
-      const showAllLabels = wk.w >= 26;
+      const showAllLabels = wk.w >= 22;
       if (showAllLabels || wk.pc === 0 || wk.midi === MIN_MIDI || wk.midi === MAX_MIDI) {
-        const fontSize = Math.max(9, Math.min(13, Math.round(wk.w * 0.28)));
+        const fontSize = Math.max(8, Math.min(13, Math.round(wk.w * 0.29)));
         ctx.fillStyle = hand ? "#0F172A" : (wk.pc === 0 ? "#4F46E5" : "#64748B");
         ctx.font = `${wk.pc === 0 ? "900" : "700"} ${fontSize}px 'Nunito', sans-serif`;
         ctx.textAlign = "center";
@@ -1546,7 +1587,7 @@ function initApp() {
       }
     }
 
-    // 2. 10 teclas negras (con Sib en lugar de La#)
+    // 2. 13 teclas negras (con Sib en lugar de La#)
     for (const bk of BLACK_KEYS) {
       const hand = activeHandsByMidi.get(bk.midi);
       const isManual = manualPressedMidi === bk.midi;
@@ -1565,8 +1606,8 @@ function initApp() {
       ctx.stroke();
 
       // Etiqueta de Sib en las teclas negras de Bb cuando hay ancho suficiente
-      if (bk.pc === 10 && bk.w >= 18) {
-        const fontSize = Math.max(8, Math.min(11, Math.round(bk.w * 0.42)));
+      if (bk.pc === 10 && bk.w >= 15) {
+        const fontSize = Math.max(8, Math.min(11, Math.round(bk.w * 0.44)));
         ctx.fillStyle = hand ? "#052E16" : "#CBD5E1";
         ctx.font = `800 ${fontSize}px 'Nunito', sans-serif`;
         ctx.textAlign = "center";
