@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Piano Synthesia – Práctica a Dos Manos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fg: #1E293B;
+    --muted: #64748B;
+    --bg: #F1F5F9;
+    --card: #FFFFFF;
+    --surface: #F8FAFC;
+    --border: #E2E8F0;
+    --primary: #4F46E5;
+    --primary-hover: #4338CA;
+    --lh-fill: #86EFAC;
+    --lh-border: #22C55E;
+    --rh-fill: #FDBA74;
+    --rh-border: #F97316;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    padding: 10px 14px;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  /* Modo pantalla completa (nativo + modo estudio expandido para iOS/Android) */
+  body.is-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 999999 !important;
+    background: var(--bg) !important;
+    padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+    gap: 6px !important;
+  }
+
+  body.is-fullscreen .controls {
+    padding: 5px 10px !important;
+    gap: 6px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  body.is-fullscreen .legend-group,
+  body.is-fullscreen .speed-group,
+  body.is-fullscreen #toggle-extra,
+  body.is-fullscreen .lbl {
+    display: none !important;
+  }
+
+  body.is-fullscreen .transport-group {
+    flex: 0 0 auto !important;
+  }
+
+  body.is-fullscreen .seek-group {
+    flex: 1 1 120px !important;
+  }
+
+  body.is-fullscreen #play,
+  body.is-fullscreen #stop,
+  body.is-fullscreen #fs {
+    min-height: 32px !important;
+    padding: 4px 12px !important;
+    font-size: 13px !important;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  }
+
+  /* ============ Barra superior de controles ============ */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+    padding: 10px 16px;
+    flex-shrink: 0;
+  }
+
+  .group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .transport-group {
+    flex: 0 0 auto;
+  }
+
+  .speed-group {
+    flex: 1 1 180px;
+    max-width: 250px;
+    min-width: 0;
+  }
+
+  .legend-group {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .seek-group {
+    flex: 1 1 240px;
+    min-width: 0;
+  }
+
+  .actions-right {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  .lbl {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .hand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    white-space: nowrap;
+  }
+
+  .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .swatch.lh {
+    background: var(--lh-fill);
+    border: 1.5px solid var(--lh-border);
+  }
+
+  .swatch.rh {
+    background: var(--rh-fill);
+    border: 1.5px solid var(--rh-border);
+  }
+
+  button {
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    min-height: 36px;
+    padding: 5px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+  }
+
+  button:active {
+    transform: translateY(1px);
+  }
+
+  button:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  #play {
+    background: var(--primary);
+    color: #FFFFFF;
+    border: none;
+    padding: 5px 18px;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+  }
+
+  #play:hover {
+    background: var(--primary-hover);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  }
+
+  .btn-sec {
+    background: var(--surface);
+    color: var(--fg);
+    border: 1px solid var(--border);
+  }
+
+  .btn-sec:hover {
+    background: #F1F5F9;
+    border-color: #CBD5E1;
+  }
+
+  #toggle-extra {
+    display: none;
+  }
+
+  input[type=range] {
+    flex: 1;
+    min-width: 60px;
+    height: 24px;
+    accent-color: #4F46E5;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  #speedv {
+    min-width: 4.2ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--fg);
+  }
+
+  #time {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    min-width: 8ch;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  /* ============ Tarjeta principal: Barra de Acordes + Synthesia ============ */
+  .stage-card {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chord-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 18px;
+    background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    min-height: 52px;
+  }
+
+  .chord-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .chord-tag {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    background: var(--bg);
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .chord-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex: 1;
+  }
+
+  #chord-current {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--primary);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    padding: 2px 14px;
+    border-radius: 10px;
+    background: #EEF2FF;
+    border: 1.5px solid #C7D2FE;
+    transition: transform 0.12s ease, background-color 0.15s ease;
+  }
+
+  #chord-current.is-empty {
+    color: var(--muted);
+    background: var(--surface);
+    border-color: var(--border);
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  #chord-root {
+    font-size: 12px;
+    font-weight: 800;
+    color: #166534;
+    background: #DCFCE7;
+    border: 1px solid #86EFAC;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  #chord-root:empty {
+    display: none;
+  }
+
+  .chord-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  #chord-next {
+    font-weight: 800;
+    color: var(--fg);
+  }
+
+  main {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    width: 100%;
+  }
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: #0F172A;
+    touch-action: none;
+  }
+
+  /* ============ Adaptación Móvil Vertical (Portrait) ============ */
+  @media (max-width: 768px) {
+    body {
+      padding: 6px 8px;
+      gap: 6px;
+    }
+
+    .controls {
+      padding: 8px 10px;
+      gap: 6px 8px;
+      border-radius: 14px;
+    }
+
+    .transport-group {
+      flex: 1 1 auto;
+    }
+
+    .transport-group #play {
+      flex: 1;
+    }
+
+    #toggle-extra {
+      display: inline-flex;
+      padding: 5px 10px;
+      font-size: 13px;
+    }
+
+    .controls.compact-mobile .speed-group,
+    .controls.compact-mobile .legend-group {
+      display: none;
+    }
+
+    .speed-group {
+      flex: 1 1 100%;
+      max-width: none;
+    }
+
+    .legend-group {
+      flex: 1 1 auto;
+    }
+
+    .seek-group {
+      flex: 1 1 100%;
+    }
+
+    .actions-right {
+      margin-left: 0;
+    }
+
+    .fs-label {
+      display: none;
+    }
+
+    #fs {
+      padding: 5px 10px;
+    }
+
+    .stage-card {
+      border-radius: 14px;
+    }
+
+    .chord-bar {
+      padding: 6px 10px;
+      min-height: 44px;
+      gap: 6px;
+    }
+
+    .chord-tag {
+      display: none;
+    }
+
+    #chord-current {
+      font-size: 19px;
+      padding: 2px 10px;
+    }
+
+    .chord-right {
+      font-size: 12px;
+    }
+  }
+
+  /* ============ Adaptación Móvil Horizontal (Landscape) ============ */
+  @media (max-height: 520px) and (orientation: landscape) {
+    body {
+      padding: 4px 6px;
+      gap: 4px;
+    }
+
+    .controls {
+      padding: 4px 8px;
+      gap: 4px 8px;
+      border-radius: 12px;
+    }
+
+    .controls.compact-mobile .speed-group,
+    .controls.compact-mobile .legend-group {
+      display: flex;
+    }
+
+    #toggle-extra,
+    .lbl {
+      display: none;
+    }
+
+    button {
+      min-height: 30px;
+      font-size: 13px;
+      padding: 2px 10px;
+      border-radius: 8px;
+    }
+
+    .hand-badge {
+      padding: 2px 8px;
+      font-size: 11px;
+    }
+
+    .speed-group {
+      flex: 1 1 105px;
+      max-width: 155px;
+    }
+
+    .seek-group {
+      flex: 1 1 140px;
+    }
+
+    #time {
+      font-size: 12px;
+      min-width: 7.2ch;
+    }
+
+    input[type=range] {
+      height: 20px;
+      min-width: 45px;
+    }
+
+    .fs-label {
+      display: none;
+    }
+
+    .stage-card {
+      border-radius: 12px;
+    }
+
+    .chord-bar {
+      padding: 3px 12px;
+      min-height: 34px;
+    }
+
+    #chord-current {
+      font-size: 16px;
+      padding: 1px 10px;
+    }
+
+    .chord-right {
+      font-size: 11px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="controls card" id="controls-bar">
+  <div class="group transport-group">
+    <button id="play"><span aria-hidden="true">▶</span> Iniciar</button>
+    <button id="stop" class="btn-sec" title="Reiniciar">Reiniciar</button>
+    <button id="toggle-extra" class="btn-sec" type="button" aria-expanded="true">Ajustes ▴</button>
+  </div>
+
+  <div class="group speed-group">
+    <label class="lbl" for="speed">Velocidad</label>
+    <input type="range" id="speed" min="50" max="200" step="5" value="100" aria-label="Velocidad">
+    <output id="speedv" for="speed">100%</output>
+  </div>
+
+  <div class="group legend-group" aria-label="Código de colores por mano">
+    <span class="hand-badge"><span class="swatch lh"></span>Mano Izq.</span>
+    <span class="hand-badge"><span class="swatch rh"></span>Mano Der.</span>
+  </div>
+
+  <div class="group seek-group">
+    <span id="time">0:00 / 0:00</span>
+    <input type="range" id="seek" min="0" max="1" step="any" value="0" aria-label="Posición en la canción">
+  </div>
+
+  <div class="actions-right">
+    <button id="fs" class="btn-sec" type="button" title="Pantalla completa">
+      <span aria-hidden="true">⛶</span><span class="fs-label">Pantalla completa</span>
+    </button>
+  </div>
+</div>
+
+<section class="stage-card card">
+  <header class="chord-bar" aria-live="polite">
+    <div class="chord-left">
+      <span class="chord-tag">Acorde actual</span>
+    </div>
+    <div class="chord-center">
+      <span id="chord-current" class="is-empty">Cargando MIDIs…</span>
+      <span id="chord-root"></span>
+    </div>
+    <div class="chord-right">
+      <span>Siguiente:</span>
+      <span id="chord-next">—</span>
+    </div>
+  </header>
+  <main id="stage"><canvas id="cv"></canvas></main>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.28/build/Midi.js"></script>
+<script>
+function initApp() {
+  const el = id => document.getElementById(id);
+
+  /* ============================================================================
+     1. CONFIGURACIÓN DE ARCHIVOS MIDI (EXPORTADOS DESDE MUSESCORE) Y ACORDES
+     ============================================================================ */
+  const MIDI_FILES = {
+    melody:     "./midis/melodiaprincipal.mid",
+    piano:      "./midis/piano.mid",          // Un solo MIDI de piano (2 pentagramas de MuseScore)
+    leftAlt:    "./midis/pianoizquierda.mid", // Respaldo opcional si se exportan por separado
+    rightAlt:   "./midis/pianoderecha.mid"    // Respaldo opcional si se exportan por separado
+  };
+
+  // Punto de corte de respaldo solo si el MIDI de piano viniera en 1 sola pista y 1 canal:
+  // 55 = Sol3 (centro exacto de tu teclado G2–G4) | 60 = Do4 (Do central)
+  const NOTA_DIVISION = 55;
+
+  /**
+   * DEFINICIÓN DE ACORDES (POR COMPÁS Y PULSO):
+   * - Si dejas esta lista vacía ([]), la app detecta AUTOMÁTICAMENTE el acorde
+   *   leyendo la nota fundamental que toca la mano izquierda (Re, Fa, Sol, Do, La).
+   * - Si quieres fijar tú mismo el momento exacto de cada acorde, descomenta y
+   *   edita las líneas de abajo indicando el compás (1, 2, 3...) y el pulso (1, 2, 3, 4):
+   */
+  const ACORDES_MANUALES = [
+    // { compas: 1, pulso: 1, acorde: "Re menor" },
+    // { compas: 2, pulso: 1, acorde: "Fa Mayor" },
+    // { compas: 3, pulso: 1, acorde: "Sol menor" },
+    // { compas: 4, pulso: 1, acorde: "Do Mayor" },
+    // { compas: 5, pulso: 1, acorde: "La 7" },
+  ];
+
+  /* Mapeo por nota fundamental (clase de altura MIDI 0..11) */
+  const ACORDES_POR_FUNDAMENTAL = {
+    2: { nombre: "Re menor",  nota: "Re"  }, // D
+    5: { nombre: "Fa Mayor",  nota: "Fa"  }, // F
+    7: { nombre: "Sol menor", nota: "Sol" }, // G
+    0: { nombre: "Do Mayor",  nota: "Do"  }, // C
+    9: { nombre: "La 7",      nota: "La"  }  // A
+  };
+
+  /* ============================================================================
+     2. RANGO DEL PIANO: DOS OCTAVAS EXACTAS DE G2 (43) A G4 (67)
+     ============================================================================ */
+  const MIN_MIDI = 43; // G2 (Sol 2)
+  const MAX_MIDI = 67; // G4 (Sol 4)
+  const NOTE_NAMES_ES = ["Do", "Do#", "Re", "Re#", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "La#", "Si"];
+  const BLACK_PCS = new Set([1, 3, 6, 8, 10]);
+
+  const PIANO_KEYS = [];
+  const WHITE_KEYS = [];
+  const BLACK_KEYS = [];
+  const KEY_BY_MIDI = {};
+
+  for (let m = MIN_MIDI; m <= MAX_MIDI; m++) {
+    const pc = m % 12;
+    const octave = Math.floor(m / 12) - 1;
+    const isBlack = BLACK_PCS.has(pc);
+    const labelEs = NOTE_NAMES_ES[pc] + (pc === 0 || m === MIN_MIDI || m === MAX_MIDI ? octave : "");
+    const keyObj = {
+      midi: m,
+      pc,
+      octave,
+      isBlack,
+      label: labelEs,
+      whiteIndex: WHITE_KEYS.length,
+      x: 0,
+      w: 0,
+      h: 0
+    };
+    PIANO_KEYS.push(keyObj);
+    KEY_BY_MIDI[m] = keyObj;
+    if (isBlack) {
+      BLACK_KEYS.push(keyObj);
+    } else {
+      WHITE_KEYS.push(keyObj);
+    }
+  }
+
+  /* Ajusta notas fuera de G2..G4 por octavas para que siempre se vean en el teclado */
+  function foldToVisibleRange(midi) {
+    let m = midi;
+    while (m < MIN_MIDI) m += 12;
+    while (m > MAX_MIDI) m -= 12;
+    return m;
+  }
+
+  /* ============================================================================
+     3. SINTETIZADORES DE AUDIO (Tone.js)
+     ============================================================================ */
+  /* Melodía principal de fondo en todo momento */
+  const vibrato = new Tone.Vibrato(4.5, 0.06).toDestination();
+  const melodySynth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "custom", partials: [1, 0.25, 0.07] },
+    envelope: { attack: 0.04, decay: 0.12, sustain: 0.82, release: 0.18 }
+  }).connect(vibrato);
+  melodySynth.volume.value = -7;
+
+  /* Piano para ambas manos */
+  const pianoSynth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "triangle" },
+    envelope: { attack: 0.015, decay: 0.25, sustain: 0.45, release: 0.35 }
+  }).toDestination();
+  pianoSynth.volume.value = -5;
+
+  /* Metrónomo suave solo para el compás de cuenta previa */
+  const clickSynth = new Tone.MembraneSynth({
+    pitchDecay: 0.008,
+    octaves: 2,
+    envelope: { attack: 0.001, decay: 0.07, sustain: 0, release: 0.01 }
+  }).toDestination();
+  clickSynth.volume.value = -12;
+
+  /* ============================================================================
+     4. CARGA Y SEPARACIÓN AUTOMÁTICA DE MANOS DESDE MUSESCORE
+     ============================================================================ */
+  let song = {
+    leftNotes: [],
+    rightNotes: [],
+    melodyNotes: [],
+    chords: [],
+    bpm: 100,
+    num: 4,
+    lead: 4,
+    endBeat: 1,
+    loaded: false
+  };
+  let speed = 1;
+  let posTicks = 0;
+
+  async function fetchMidiFile(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`No se pudo cargar ${url}`);
+    const buf = await res.arrayBuffer();
+    const MidiClass = (window.Midi && window.Midi.Midi) || window.Midi;
+    return new MidiClass(buf);
+  }
+
+  function extractRawNotes(midiObj) {
+    const out = [];
+    if (!midiObj) return out;
+    const ppq = midiObj.header.ppq || 480;
+    midiObj.tracks.forEach(tr => {
+      if (tr.instrument && tr.instrument.percussion) return;
+      tr.notes.forEach(n => {
+        out.push({
+          midi: n.midi,
+          startBeatRaw: n.ticks / ppq,
+          durBeats: Math.max(0.08, n.durationTicks / ppq),
+          vel: n.velocity || 0.8
+        });
+      });
+    });
+    return out.sort((a, b) => a.startBeatRaw - b.startBeatRaw);
+  }
+
+  /* Separa automáticamente un único MIDI de piano (MuseScore) en mano izquierda y derecha */
+  function splitPianoHands(pianoMidi) {
+    if (!pianoMidi) return { leftRaw: [], rightRaw: [] };
+    const ppq = pianoMidi.header.ppq || 480;
+
+    // Filtrar pistas melódicas que contengan notas (MuseScore exporta 1 pista por pentagrama)
+    const validTracks = pianoMidi.tracks
+      .filter(tr => (!tr.instrument || !tr.instrument.percussion) && tr.notes.length > 0)
+      .map((tr, idx) => {
+        const notes = tr.notes.map(n => ({
+          midi: n.midi,
+          channel: tr.channel || 0,
+          startBeatRaw: n.ticks / ppq,
+          durBeats: Math.max(0.08, n.durationTicks / ppq),
+          vel: n.velocity || 0.8
+        }));
+        const avgPitch = notes.reduce((acc, n) => acc + n.midi, 0) / notes.length;
+        return { idx, notes, avgPitch };
+      });
+
+    if (!validTracks.length) return { leftRaw: [], rightRaw: [] };
+
+    // CASO 1 (Estándar MuseScore): 2 o más pistas (pentagrama superior = derecha, inferior = izquierda)
+    if (validTracks.length >= 2) {
+      validTracks.sort((a, b) => {
+        if (Math.abs(a.avgPitch - b.avgPitch) > 0.5) return a.avgPitch - b.avgPitch;
+        // En caso de empate exacto de altura, en MuseScore la pista inferior tiene índice mayor
+        return b.idx - a.idx;
+      });
+      const leftRaw = validTracks[0].notes.sort((a, b) => a.startBeatRaw - b.startBeatRaw);
+      const rightRaw = validTracks
+        .slice(1)
+        .flatMap(t => t.notes)
+        .sort((a, b) => a.startBeatRaw - b.startBeatRaw);
+      return { leftRaw, rightRaw };
+    }
+
+    // CASO 2: 1 sola pista con 2 canales MIDI distintos
+    const singleNotes = validTracks[0].notes;
+    const channels = [...new Set(singleNotes.map(n => n.channel))];
+    if (channels.length >= 2) {
+      const byChannel = channels.map(ch => {
+        const chNotes = singleNotes.filter(n => n.channel === ch);
+        const avg = chNotes.reduce((acc, n) => acc + n.midi, 0) / chNotes.length;
+        return { chNotes, avg };
+      }).sort((a, b) => a.avg - b.avg);
+
+      return {
+        leftRaw: byChannel[0].chNotes.sort((a, b) => a.startBeatRaw - b.startBeatRaw),
+        rightRaw: byChannel.slice(1).flatMap(c => c.chNotes).sort((a, b) => a.startBeatRaw - b.startBeatRaw)
+      };
+    }
+
+    // CASO 3: 1 sola pista y 1 solo canal -> dividir por altura (NOTA_DIVISION)
+    const leftRaw = [];
+    const rightRaw = [];
+    for (const n of singleNotes) {
+      if (n.midi < NOTA_DIVISION) {
+        leftRaw.push(n);
+      } else {
+        rightRaw.push(n);
+      }
+    }
+    return {
+      leftRaw: leftRaw.sort((a, b) => a.startBeatRaw - b.startBeatRaw),
+      rightRaw: rightRaw.sort((a, b) => a.startBeatRaw - b.startBeatRaw)
+    };
+  }
+
+  function buildChordTimeline(leftNotes, rightNotes, numBeats, leadBeats) {
+    if (ACORDES_MANUALES.length > 0) {
+      return ACORDES_MANUALES
+        .map(item => {
+          const compas = Math.max(1, item.compas || 1);
+          const pulso = Math.max(1, item.pulso || 1);
+          const beat = leadBeats + (compas - 1) * numBeats + (pulso - 1);
+          const foundEntry = Object.values(ACORDES_POR_FUNDAMENTAL).find(
+            c => c.nombre.toLowerCase() === item.acorde.trim().toLowerCase()
+          );
+          return {
+            startBeat: beat,
+            nombre: item.acorde.trim(),
+            nota: foundEntry ? foundEntry.nota : ""
+          };
+        })
+        .sort((a, b) => a.startBeat - b.startBeat);
+    }
+
+    const sourceNotes = leftNotes.length > 0 ? leftNotes : rightNotes;
+    if (!sourceNotes.length) return [];
+
+    // Agrupar notas simultáneas (mismo inicio) para leer la nota fundamental (bajo)
+    const groups = [];
+    for (const n of sourceNotes) {
+      const last = groups[groups.length - 1];
+      if (last && Math.abs(n.startBeat - last.startBeat) < 0.06) {
+        if (n.midi < last.lowestMidi) last.lowestMidi = n.midi;
+      } else {
+        groups.push({ startBeat: n.startBeat, lowestMidi: n.midi });
+      }
+    }
+
+    const timeline = [];
+    let lastChordName = "";
+    for (const g of groups) {
+      const pc = ((g.lowestMidi % 12) + 12) % 12;
+      const chordInfo = ACORDES_POR_FUNDAMENTAL[pc];
+      if (chordInfo && chordInfo.nombre !== lastChordName) {
+        timeline.push({
+          startBeat: g.startBeat,
+          nombre: chordInfo.nombre,
+          nota: chordInfo.nota
+        });
+        lastChordName = chordInfo.nombre;
+      }
+    }
+    return timeline;
+  }
+
+  function setupSongData(melodyMidi, pianoMidi, leftAltMidi, rightAltMidi) {
+    resetPlayback();
+    const T = Tone.Transport;
+    T.cancel();
+    const ppq = 480;
+    T.PPQ = ppq;
+
+    const refMidi = melodyMidi || pianoMidi || rightAltMidi || leftAltMidi;
+    const bpm = (refMidi && refMidi.header.tempos.length) ? refMidi.header.tempos[0].bpm : 100;
+    const rawNum = (refMidi && refMidi.header.timeSignatures.length)
+      ? refMidi.header.timeSignatures[0].timeSignature[0]
+      : 4;
+    const num = Math.min(Math.max(rawNum || 4, 2), 6);
+    const lead = num; // 1 compás de preparación visual antes de que caigan las notas
+
+    const mapHandNotes = (rawList, hand) => rawList.map(n => ({
+      midi: n.midi,
+      displayMidi: foldToVisibleRange(n.midi),
+      hand,
+      startBeat: n.startBeatRaw + lead,
+      durBeats: n.durBeats,
+      vel: n.vel
+    }));
+
+    let leftRaw = [];
+    let rightRaw = [];
+
+    if (pianoMidi) {
+      const split = splitPianoHands(pianoMidi);
+      leftRaw = split.leftRaw;
+      rightRaw = split.rightRaw;
+    } else {
+      leftRaw = extractRawNotes(leftAltMidi);
+      rightRaw = extractRawNotes(rightAltMidi);
+    }
+
+    const melodyNotes = mapHandNotes(extractRawNotes(melodyMidi), "melody");
+    const leftNotes   = mapHandNotes(leftRaw, "left");
+    const rightNotes  = mapHandNotes(rightRaw, "right");
+
+    const chords = buildChordTimeline(leftNotes, rightNotes, num, lead);
+
+    const allNotes = [...melodyNotes, ...leftNotes, ...rightNotes];
+    const maxBeat = allNotes.reduce((acc, n) => Math.max(acc, n.startBeat + n.durBeats), lead + 4);
+
+    song = {
+      melodyNotes,
+      leftNotes,
+      rightNotes,
+      chords,
+      bpm,
+      num,
+      lead,
+      endBeat: maxBeat + 1.5,
+      loaded: allNotes.length > 0
+    };
+
+    // Melodía principal sonando de fondo en todo momento
+    melodyNotes.forEach(n => {
+      const startTicks = Math.round(n.startBeat * ppq);
+      const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.94));
+      T.schedule(time => {
+        const dSec = Math.max(new Tone.Ticks(durTicks).toSeconds(), 0.08);
+        melodySynth.triggerAttackRelease(Tone.Frequency(n.midi, "midi").toFrequency(), dSec, time, n.vel * 0.85);
+      }, startTicks + "i");
+    });
+
+    // Piano (mano izquierda y mano derecha)
+    [...leftNotes, ...rightNotes].forEach(n => {
+      const startTicks = Math.round(n.startBeat * ppq);
+      const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.92));
+      T.schedule(time => {
+        const dSec = Math.max(new Tone.Ticks(durTicks).toSeconds(), 0.08);
+        pianoSynth.triggerAttackRelease(Tone.Frequency(n.midi, "midi").toFrequency(), dSec, time, n.vel * 0.9);
+      }, startTicks + "i");
+    });
+
+    // Clic de cuenta previa solo durante el primer compás (lead)
+    T.scheduleRepeat(time => {
+      const b = Math.round(T.getTicksAtTime(time) / ppq);
+      if (b < lead) {
+        clickSynth.triggerAttackRelease(b === 0 ? "C3" : "G2", "32n", time);
+      }
+    }, "4n");
+
+    T.bpm.value = bpm * speed;
+    el("seek").max = song.endBeat;
+    el("seek").value = 0;
+    updateChordDisplay(0);
+  }
+
+  async function loadAllMidis() {
+    const [melRes, pianoRes] = await Promise.allSettled([
+      fetchMidiFile(MIDI_FILES.melody),
+      fetchMidiFile(MIDI_FILES.piano)
+    ]);
+
+    const melodyMidi = melRes.status === "fulfilled" ? melRes.value : null;
+    const pianoMidi  = pianoRes.status === "fulfilled" ? pianoRes.value : null;
+
+    let leftAltMidi = null;
+    let rightAltMidi = null;
+
+    // Si no existe ./midis/piano.mid, buscar respaldo pianoizquierda.mid y pianoderecha.mid
+    if (!pianoMidi) {
+      const [lRes, rRes] = await Promise.allSettled([
+        fetchMidiFile(MIDI_FILES.leftAlt),
+        fetchMidiFile(MIDI_FILES.rightAlt)
+      ]);
+      leftAltMidi  = lRes.status === "fulfilled" ? lRes.value : null;
+      rightAltMidi = rRes.status === "fulfilled" ? rRes.value : null;
+    }
+
+    if (!melodyMidi && !pianoMidi && !leftAltMidi && !rightAltMidi) {
+      el("chord-current").textContent = "Falta ./midis/piano.mid";
+      el("chord-current").classList.add("is-empty");
+      return;
+    }
+
+    setupSongData(melodyMidi, pianoMidi, leftAltMidi, rightAltMidi);
+  }
+
+  /* ============================================================================
+     5. BARRA DE ACORDES SUPERIOR
+     ============================================================================ */
+  let lastRenderedChord = "";
+
+  function updateChordDisplay(beat) {
+    const curEl = el("chord-current");
+    const rootEl = el("chord-root");
+    const nextEl = el("chord-next");
+
+    if (!song.chords.length) {
+      if (song.loaded) {
+        curEl.textContent = "Re menor";
+        curEl.classList.remove("is-empty");
+        rootEl.textContent = "Base: Re";
+      }
+      nextEl.textContent = "—";
+      return;
+    }
+
+    let activeIdx = -1;
+    for (let i = 0; i < song.chords.length; i++) {
+      if (beat >= song.chords[i].startBeat - 0.04) {
+        activeIdx = i;
+      } else {
+        break;
+      }
+    }
+
+    if (activeIdx === -1) {
+      const first = song.chords[0];
+      const keyStr = "prep:" + first.nombre;
+      if (lastRenderedChord !== keyStr) {
+        lastRenderedChord = keyStr;
+        curEl.textContent = first.nombre;
+        curEl.classList.remove("is-empty");
+        rootEl.textContent = first.nota ? `Prepárate · Base: ${first.nota}` : "Prepárate";
+        nextEl.textContent = song.chords[1] ? song.chords[1].nombre : "—";
+      }
+      return;
+    }
+
+    const current = song.chords[activeIdx];
+    const next = song.chords[activeIdx + 1];
+    const keyStr = activeIdx + ":" + current.nombre;
+
+    if (lastRenderedChord !== keyStr) {
+      lastRenderedChord = keyStr;
+      curEl.textContent = current.nombre;
+      curEl.classList.remove("is-empty");
+      rootEl.textContent = current.nota ? `Base: ${current.nota}` : "";
+      nextEl.textContent = next ? next.nombre : "Final";
+
+      curEl.style.transform = "scale(1.05)";
+      setTimeout(() => { curEl.style.transform = "scale(1)"; }, 130);
+    }
+  }
+
+  /* ============================================================================
+     6. CONTROLES DE REPRODUCCIÓN, VELOCIDAD, SEEK Y PANTALLA COMPLETA
+     ============================================================================ */
+  const ticksNow = () => Tone.Transport.getTicksAtTime(Tone.getContext().currentTime);
+  const getBeat = () => (Tone.Transport.state === "started" ? ticksNow() : posTicks) / Tone.Transport.PPQ;
+
+  function setPlayButtonState(playing) {
+    el("play").innerHTML = playing
+      ? '<span aria-hidden="true">⏸</span> Pausa'
+      : '<span aria-hidden="true">▶</span> Iniciar';
+  }
+
+  function resetPlayback() {
+    Tone.Transport.stop();
+    posTicks = 0;
+    melodySynth.releaseAll();
+    pianoSynth.releaseAll();
+    setPlayButtonState(false);
+    el("seek").value = 0;
+    lastRenderedChord = "";
+    updateChordDisplay(0);
+  }
+
+  el("play").addEventListener("click", async () => {
+    await Tone.start();
+    const T = Tone.Transport;
+    if (T.state === "started") {
+      posTicks = ticksNow();
+      T.pause();
+      melodySynth.releaseAll();
+      pianoSynth.releaseAll();
+      setPlayButtonState(false);
+    } else {
+      if (posTicks / T.PPQ >= song.endBeat - 0.01) posTicks = 0;
+      T.start(undefined, Math.round(posTicks) + "i");
+      setPlayButtonState(true);
+    }
+  });
+
+  el("stop").addEventListener("click", resetPlayback);
+
+  el("speed").addEventListener("input", e => {
+    const v = parseInt(e.target.value, 10);
+    speed = v / 100;
+    el("speedv").textContent = v + "%";
+    Tone.Transport.bpm.value = song.bpm * speed;
+  });
+
+  /* Colapsar/mostrar ajustes secundarios en móvil vertical */
+  const controlsBar = el("controls-bar");
+  const toggleExtraBtn = el("toggle-extra");
+  toggleExtraBtn.addEventListener("click", () => {
+    const compact = controlsBar.classList.toggle("compact-mobile");
+    toggleExtraBtn.setAttribute("aria-expanded", String(!compact));
+    toggleExtraBtn.textContent = compact ? "Ajustes ▾" : "Ajustes ▴";
+    requestAnimationFrame(resize);
+  });
+
+  /* Pantalla completa híbrida (PC/Android nativo + modo estudio en iOS) */
+  function updateFsButton(active) {
+    el("fs").innerHTML = active
+      ? '<span aria-hidden="true">✕</span><span class="fs-label">Salir</span>'
+      : '<span aria-hidden="true">⛶</span><span class="fs-label">Pantalla completa</span>';
+  }
+
+  function enterStudyFullscreen() {
+    document.body.classList.add("is-fullscreen");
+    updateFsButton(true);
+    window.scrollTo(0, 1);
+    setTimeout(resize, 60);
+  }
+
+  function exitStudyFullscreen() {
+    document.body.classList.remove("is-fullscreen");
+    updateFsButton(false);
+    setTimeout(resize, 60);
+  }
+
+  function toggleFullscreen() {
+    const nativeFS = document.fullscreenElement || document.webkitFullscreenElement;
+    const cssFS = document.body.classList.contains("is-fullscreen");
+
+    if (!nativeFS && !cssFS) {
+      enterStudyFullscreen();
+      const doc = document.documentElement;
+      const req = doc.requestFullscreen || doc.webkitRequestFullscreen;
+      if (typeof req === "function") {
+        try {
+          const p = req.call(doc);
+          if (p && typeof p.catch === "function") p.catch(() => {});
+        } catch (e) {}
+      }
+    } else {
+      exitStudyFullscreen();
+      if (nativeFS) {
+        try {
+          if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+          else if (document.webkitExitFullscreen) document.webkitExitFullscreen().catch(() => {});
+        } catch (e) {}
+      }
+    }
+  }
+
+  el("fs").addEventListener("click", toggleFullscreen);
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement && document.body.classList.contains("is-fullscreen")) {
+      exitStudyFullscreen();
+    } else {
+      resize();
+    }
+  });
+
+  /* Deslizante de avanzar y retroceder en la canción */
+  const seek = el("seek");
+  let dragging = false, wasPlaying = false, lastSeek = 0;
+
+  seek.addEventListener("pointerdown", () => {
+    dragging = true;
+    wasPlaying = Tone.Transport.state === "started";
+    if (wasPlaying) {
+      posTicks = ticksNow();
+      Tone.Transport.pause();
+      melodySynth.releaseAll();
+      pianoSynth.releaseAll();
+    }
+  });
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    posTicks = Math.round(parseFloat(seek.value) * Tone.Transport.PPQ);
+    if (wasPlaying) {
+      Tone.Transport.start(undefined, posTicks + "i");
+      wasPlaying = false;
+    }
+  }
+
+  ["pointerup", "pointercancel", "change"].forEach(ev => seek.addEventListener(ev, endDrag));
+
+  seek.addEventListener("input", () => {
+    lastSeek = performance.now();
+    posTicks = Math.round(parseFloat(seek.value) * Tone.Transport.PPQ);
+    if (!dragging && Tone.Transport.state === "started") {
+      Tone.Transport.pause();
+      melodySynth.releaseAll();
+      pianoSynth.releaseAll();
+      Tone.Transport.start(undefined, posTicks + "i");
+    }
+  });
+
+  /* ============================================================================
+     7. RENDERIZADO SYNTHESIA (CAÍDA DE NOTAS + TECLADO DE 2 OCTAVAS G2–G4)
+     ============================================================================ */
+  const cv = el("cv");
+  const ctx = cv.getContext("2d");
+  const stage = el("stage");
+
+  let W = 800, H = 450, dpr = 1;
+  const L = {
+    keyH: 130,
+    fallH: 320,
+    whiteW: 50,
+    blackW: 30,
+    blackH: 80,
+    pxPerBeat: 110
+  };
+
+  function computeLayout() {
+    const isPortraitMobile = W < 650 && H >= W;
+    const isLandscapeMobile = H < 500 && W > H;
+
+    if (isPortraitMobile) {
+      L.keyH = Math.max(105, Math.min(148, Math.round(H * 0.24)));
+    } else if (isLandscapeMobile) {
+      L.keyH = Math.max(78, Math.min(112, Math.round(H * 0.30)));
+    } else {
+      L.keyH = Math.max(125, Math.min(180, Math.round(H * 0.25)));
+    }
+
+    L.fallH = Math.max(80, H - L.keyH);
+    L.whiteW = W / WHITE_KEYS.length; // 15 teclas blancas de G2 a G4
+    L.blackW = L.whiteW * 0.60;
+    L.blackH = L.keyH * 0.62;
+
+    const visibleBeats = isLandscapeMobile ? 3.4 : (isPortraitMobile ? 4.8 : 4.5);
+    L.pxPerBeat = Math.max(54, L.fallH / visibleBeats);
+
+    WHITE_KEYS.forEach((k, idx) => {
+      k.x = idx * L.whiteW;
+      k.w = L.whiteW;
+      k.h = L.keyH;
+    });
+
+    BLACK_KEYS.forEach(k => {
+      const boundaryX = k.whiteIndex * L.whiteW;
+      k.x = boundaryX - L.blackW / 2;
+      k.w = L.blackW;
+      k.h = L.blackH;
+    });
+  }
+
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    W = Math.max(220, Math.floor(r.width));
+    H = Math.max(160, Math.floor(r.height));
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = W * dpr;
+    cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    computeLayout();
+  }
+
+  new ResizeObserver(resize).observe(stage);
+  window.addEventListener("resize", resize);
+  resize();
+
+  /* Permite tocar las teclas del piano directamente en pantalla para probar sonido */
+  let manualPressedMidi = null;
+
+  function findKeyAtPoint(px, py) {
+    if (py < L.fallH) return null;
+    const localY = py - L.fallH;
+    for (const bk of BLACK_KEYS) {
+      if (px >= bk.x && px <= bk.x + bk.w && localY <= bk.h) return bk;
+    }
+    for (const wk of WHITE_KEYS) {
+      if (px >= wk.x && px <= wk.x + wk.w) return wk;
+    }
+    return null;
+  }
+
+  cv.addEventListener("pointerdown", async e => {
+    const rect = cv.getBoundingClientRect();
+    const key = findKeyAtPoint(e.clientX - rect.left, e.clientY - rect.top);
+    if (!key) return;
+    await Tone.start();
+    manualPressedMidi = key.midi;
+    pianoSynth.triggerAttackRelease(Tone.Frequency(key.midi, "midi").toFrequency(), "8n");
+  });
+
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev => {
+    cv.addEventListener(ev, () => { manualPressedMidi = null; });
+  });
+
+  function roundRectPath(x, y, w, h, r) {
+    const radius = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + w - radius, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+    ctx.lineTo(x + w, y + h - radius);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+    ctx.lineTo(x + radius, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  }
+
+  function drawBackgroundGrid(beat) {
+    ctx.fillStyle = "#0F172A";
+    ctx.fillRect(0, 0, W, L.fallH);
+
+    for (let i = 0; i < WHITE_KEYS.length; i++) {
+      const wk = WHITE_KEYS[i];
+      if (wk.pc === 0) {
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.24)";
+        ctx.lineWidth = 1.2;
+      } else {
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.08)";
+        ctx.lineWidth = 1;
+      }
+      ctx.beginPath();
+      ctx.moveTo(wk.x, 0);
+      ctx.lineTo(wk.x, L.fallH);
+      ctx.stroke();
+    }
+
+    const m = song.num || 4;
+    const maxVisibleBeat = beat + L.fallH / L.pxPerBeat + 1;
+    let b = Math.max(0, Math.floor(beat / m) * m);
+    for (; b <= maxVisibleBeat; b += m) {
+      const y = L.fallH - (b - beat) * L.pxPerBeat;
+      if (y < 0 || y > L.fallH) continue;
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.16)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawFallingNotes(beat) {
+    const activeHandsByMidi = new Map();
+    const topVisibleBeat = beat + L.fallH / L.pxPerBeat + 0.5;
+
+    const renderNoteBlock = (n) => {
+      if (n.startBeat > topVisibleBeat) return;
+      if (n.startBeat + n.durBeats < beat - 0.15) return;
+
+      const key = KEY_BY_MIDI[n.displayMidi];
+      if (!key) return;
+
+      const isActive = beat >= n.startBeat && beat < n.startBeat + n.durBeats;
+      if (isActive) {
+        activeHandsByMidi.set(n.displayMidi, n.hand);
+      }
+
+      const bottomY = L.fallH - (n.startBeat - beat) * L.pxPerBeat;
+      const rawH = n.durBeats * L.pxPerBeat;
+      const blockH = Math.max(8, rawH - 2);
+      const topY = bottomY - blockH;
+
+      const clampedBottom = Math.min(L.fallH, bottomY);
+      const clampedTop = Math.max(-20, topY);
+      const drawH = clampedBottom - clampedTop;
+      if (drawH <= 1) return;
+
+      const padX = key.isBlack ? 1.5 : 2.5;
+      const bx = key.x + padX;
+      const bw = Math.max(6, key.w - padX * 2);
+
+      // Verde claro (mano izquierda) y Naranja claro (mano derecha)
+      let fillColor, borderColor, textColor;
+      if (n.hand === "left") {
+        fillColor = key.isBlack ? "#4ADE80" : "#86EFAC";
+        borderColor = "#22C55E";
+        textColor = "#052E16";
+      } else {
+        fillColor = key.isBlack ? "#FB923C" : "#FDBA74";
+        borderColor = "#F97316";
+        textColor = "#431407";
+      }
+
+      ctx.save();
+      if (isActive) {
+        ctx.shadowColor = fillColor;
+        ctx.shadowBlur = 14;
+      }
+
+      roundRectPath(bx, clampedTop, bw, drawH, 6);
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+      ctx.lineWidth = isActive ? 2.2 : 1.3;
+      ctx.strokeStyle = isActive ? "#FFFFFF" : borderColor;
+      ctx.stroke();
+
+      if (drawH >= 20 && bw >= 18) {
+        const fontSize = Math.max(10, Math.min(13, Math.round(bw * 0.34)));
+        ctx.fillStyle = textColor;
+        ctx.font = `800 ${fontSize}px 'Nunito', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(NOTE_NAMES_ES[key.pc], bx + bw / 2, clampedBottom - 3);
+      }
+
+      ctx.restore();
+    };
+
+    const allHandNotes = [...song.leftNotes, ...song.rightNotes];
+    for (const n of allHandNotes) {
+      const k = KEY_BY_MIDI[n.displayMidi];
+      if (k && !k.isBlack) renderNoteBlock(n);
+    }
+    for (const n of allHandNotes) {
+      const k = KEY_BY_MIDI[n.displayMidi];
+      if (k && k.isBlack) renderNoteBlock(n);
+    }
+
+    return activeHandsByMidi;
+  }
+
+  function drawPianoKeyboard(activeHandsByMidi) {
+    const topY = L.fallH;
+
+    // 1. 15 teclas blancas (G2 a G4)
+    for (const wk of WHITE_KEYS) {
+      const hand = activeHandsByMidi.get(wk.midi);
+      const isManual = manualPressedMidi === wk.midi;
+      let fill = "#FFFFFF";
+      if (hand === "left") fill = "#86EFAC";
+      else if (hand === "right") fill = "#FDBA74";
+      else if (isManual) fill = "#C7D2FE";
+
+      ctx.fillStyle = fill;
+      ctx.fillRect(wk.x, topY, wk.w, wk.h);
+
+      ctx.strokeStyle = "#94A3B8";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(wk.x + 0.5, topY + 0.5, wk.w - 1, wk.h - 1);
+
+      const showAllLabels = wk.w >= 26;
+      if (showAllLabels || wk.pc === 0 || wk.midi === MIN_MIDI || wk.midi === MAX_MIDI) {
+        const fontSize = Math.max(9, Math.min(13, Math.round(wk.w * 0.28)));
+        ctx.fillStyle = hand ? "#0F172A" : (wk.pc === 0 ? "#4F46E5" : "#64748B");
+        ctx.font = `${wk.pc === 0 ? "900" : "700"} ${fontSize}px 'Nunito', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(wk.label, wk.x + wk.w / 2, topY + wk.h - 6);
+      }
+    }
+
+    // 2. 10 teclas negras
+    for (const bk of BLACK_KEYS) {
+      const hand = activeHandsByMidi.get(bk.midi);
+      const isManual = manualPressedMidi === bk.midi;
+      let fill = "#1E293B";
+      if (hand === "left") fill = "#4ADE80";
+      else if (hand === "right") fill = "#FB923C";
+      else if (isManual) fill = "#818CF8";
+
+      ctx.save();
+      roundRectPath(bk.x, topY, bk.w, bk.h, 4);
+      ctx.fillStyle = fill;
+      ctx.fill();
+
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = hand ? "#FFFFFF" : "#0F172A";
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 3. Línea de impacto luminosa
+    ctx.fillStyle = "#4F46E5";
+    ctx.fillRect(0, topY - 2, W, 3);
+  }
+
+  const fmtTime = s => {
+    s = Math.max(0, Math.round(s));
+    return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  };
+
+  function frame() {
+    const beat = getBeat() || 0;
+
+    drawBackgroundGrid(beat);
+    const activeHands = drawFallingNotes(beat);
+    drawPianoKeyboard(activeHands);
+    updateChordDisplay(beat);
+
+    if (song.loaded) {
+      const spb = 60 / (song.bpm * speed);
+      const cur = Math.min(beat, song.endBeat);
+      el("time").textContent = fmtTime(cur * spb) + " / " + fmtTime(song.endBeat * spb);
+      if (!dragging && performance.now() - lastSeek > 150) {
+        seek.value = Math.min(beat, song.endBeat);
+      }
+    }
+
+    if (Tone.Transport.state === "started" && beat > song.endBeat) {
+      resetPlayback();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  loadAllMidis();
+  requestAnimationFrame(frame);
+}
+
+if (document.readyState === "complete") {
+  initApp();
+} else {
+  window.addEventListener("load", initApp);
+}
+</script>
+</body>
+</html>
