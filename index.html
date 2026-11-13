@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Piano Synthesia – Práctica a Dos Manos</title>
+<title>Piano Synthesia – Práctica a Dos Manos, Ukelele y Violín</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -24,6 +24,9 @@
     --lh-border: #22C55E;
     --rh-fill: #FDBA74;
     --rh-border: #F97316;
+    --violin-accent: #7C3AED;
+    --violin-bg: #F5F3FF;
+    --violin-border: #C4B5FD;
   }
 
   * {
@@ -39,12 +42,16 @@
     font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
+  /* Compactado ligeramente a izquierda y derecha */
   body {
     display: flex;
     flex-direction: column;
     height: 100vh;
     height: 100dvh;
-    padding: 10px 14px;
+    max-width: 1180px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 10px 26px;
     gap: 10px;
     overflow: hidden;
   }
@@ -53,12 +60,13 @@
   body.is-fullscreen {
     position: fixed !important;
     inset: 0 !important;
+    max-width: none !important;
     width: 100vw !important;
     height: 100vh !important;
     height: 100dvh !important;
     z-index: 999999 !important;
     background: var(--bg) !important;
-    padding: max(6px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)) !important;
+    padding: max(6px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
     gap: 6px !important;
   }
 
@@ -85,9 +93,10 @@
 
   body.is-fullscreen #play,
   body.is-fullscreen #stop,
+  body.is-fullscreen #toggle-violin,
   body.is-fullscreen #fs {
     min-height: 32px !important;
-    padding: 4px 12px !important;
+    padding: 4px 10px !important;
     font-size: 13px !important;
   }
 
@@ -102,15 +111,15 @@
   .controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 16px;
+    gap: 8px 12px;
     align-items: center;
-    padding: 10px 16px;
+    padding: 9px 14px;
     flex-shrink: 0;
   }
 
   .group {
     display: flex;
-    gap: 8px;
+    gap: 7px;
     align-items: center;
   }
 
@@ -119,8 +128,8 @@
   }
 
   .speed-group {
-    flex: 1 1 180px;
-    max-width: 250px;
+    flex: 1 1 155px;
+    max-width: 220px;
     min-width: 0;
   }
 
@@ -130,7 +139,7 @@
   }
 
   .seek-group {
-    flex: 1 1 240px;
+    flex: 1 1 200px;
     min-width: 0;
   }
 
@@ -151,8 +160,8 @@
   .hand-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
+    gap: 5px;
+    padding: 4px 9px;
     border-radius: 999px;
     font-size: 12px;
     font-weight: 800;
@@ -163,9 +172,9 @@
   }
 
   .swatch {
-    width: 12px;
-    height: 12px;
-    border-radius: 4px;
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
     flex-shrink: 0;
   }
 
@@ -181,10 +190,10 @@
 
   button {
     font: inherit;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
-    min-height: 36px;
-    padding: 5px 14px;
+    min-height: 35px;
+    padding: 5px 12px;
     border-radius: 10px;
     cursor: pointer;
     touch-action: manipulation;
@@ -193,7 +202,7 @@
     justify-content: center;
     gap: 6px;
     white-space: nowrap;
-    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
   }
 
   button:active {
@@ -210,7 +219,7 @@
     background: var(--primary);
     color: #FFFFFF;
     border: none;
-    padding: 5px 18px;
+    padding: 5px 16px;
     box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
   }
 
@@ -230,13 +239,33 @@
     border-color: #CBD5E1;
   }
 
+  /* Botón opcional de pentagrama de Violín */
+  #toggle-violin {
+    background: var(--surface);
+    color: var(--fg);
+    border: 1.5px solid var(--border);
+  }
+
+  #toggle-violin:hover {
+    background: var(--violin-bg);
+    border-color: var(--violin-border);
+    color: var(--violin-accent);
+  }
+
+  #toggle-violin[aria-pressed="true"] {
+    background: var(--violin-accent);
+    color: #FFFFFF;
+    border-color: var(--violin-accent);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.30);
+  }
+
   #toggle-extra {
     display: none;
   }
 
   input[type=range] {
     flex: 1;
-    min-width: 60px;
+    min-width: 55px;
     height: 24px;
     accent-color: #4F46E5;
     cursor: pointer;
@@ -244,7 +273,7 @@
   }
 
   #speedv {
-    min-width: 4.2ch;
+    min-width: 4ch;
     text-align: right;
     font-variant-numeric: tabular-nums;
     font-weight: 800;
@@ -253,15 +282,15 @@
   }
 
   #time {
-    font-size: 13px;
+    font-size: 12.5px;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
-    min-width: 8ch;
+    min-width: 7.8ch;
     font-weight: 700;
     color: var(--muted);
   }
 
-  /* ============ Tarjeta principal: Barra de Acordes + Synthesia ============ */
+  /* ============ Tarjeta principal: Barra de Acordes + Ukelele + Synthesia ============ */
   .stage-card {
     flex: 1;
     min-height: 0;
@@ -275,11 +304,11 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 8px 18px;
+    padding: 7px 16px;
     background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    min-height: 52px;
+    min-height: 48px;
   }
 
   .chord-left {
@@ -310,7 +339,7 @@
   }
 
   #chord-current {
-    font-size: 24px;
+    font-size: 23px;
     font-weight: 900;
     color: var(--primary);
     letter-spacing: -0.02em;
@@ -326,7 +355,7 @@
     color: var(--muted);
     background: var(--surface);
     border-color: var(--border);
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
   }
 
@@ -360,11 +389,88 @@
     color: var(--fg);
   }
 
-  main {
+  /* Contenedor horizontal: Recuadro de Ukelele a la izquierda + Escenario Piano/Violín a la derecha */
+  .stage-body {
     flex: 1;
     min-height: 0;
-    position: relative;
+    display: flex;
+    flex-direction: row;
     width: 100%;
+  }
+
+  .ukulele-box {
+    width: 168px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px;
+    gap: 6px;
+    user-select: none;
+  }
+
+  .uke-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    padding: 2px 9px;
+    border-radius: 999px;
+  }
+
+  .uke-chord-title {
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--fg);
+    text-align: center;
+    line-height: 1.15;
+  }
+
+  .uke-diagram-wrap {
+    width: 100%;
+    max-width: 136px;
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px 4px 4px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .uke-diagram-wrap svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .uke-frets-pill {
+    font-size: 12px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--primary);
+    background: #EEF2FF;
+    border: 1px solid #C7D2FE;
+    padding: 2px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+  }
+
+  main {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    position: relative;
   }
 
   canvas {
@@ -380,7 +486,7 @@
   /* ============ Adaptación Móvil Vertical (Portrait) ============ */
   @media (max-width: 768px) {
     body {
-      padding: 6px 8px;
+      padding: 6px 10px;
       gap: 6px;
     }
 
@@ -440,7 +546,7 @@
 
     .chord-bar {
       padding: 6px 10px;
-      min-height: 44px;
+      min-height: 42px;
       gap: 6px;
     }
 
@@ -449,19 +555,34 @@
     }
 
     #chord-current {
-      font-size: 19px;
+      font-size: 18px;
       padding: 2px 10px;
     }
 
     .chord-right {
       font-size: 12px;
     }
+
+    .ukulele-box {
+      width: 112px;
+      padding: 6px 5px;
+      gap: 4px;
+    }
+
+    .uke-chord-title {
+      font-size: 14px;
+    }
+
+    .uke-frets-pill {
+      font-size: 11px;
+      padding: 1px 7px;
+    }
   }
 
   /* ============ Adaptación Móvil Horizontal (Landscape) ============ */
   @media (max-height: 520px) and (orientation: landscape) {
     body {
-      padding: 4px 6px;
+      padding: 4px 10px;
       gap: 4px;
     }
 
@@ -483,28 +604,28 @@
 
     button {
       min-height: 30px;
-      font-size: 13px;
-      padding: 2px 10px;
+      font-size: 12.5px;
+      padding: 2px 9px;
       border-radius: 8px;
     }
 
     .hand-badge {
-      padding: 2px 8px;
+      padding: 2px 7px;
       font-size: 11px;
     }
 
     .speed-group {
-      flex: 1 1 105px;
-      max-width: 155px;
+      flex: 1 1 95px;
+      max-width: 145px;
     }
 
     .seek-group {
-      flex: 1 1 140px;
+      flex: 1 1 130px;
     }
 
     #time {
-      font-size: 12px;
-      min-width: 7.2ch;
+      font-size: 11.5px;
+      min-width: 7ch;
     }
 
     input[type=range] {
@@ -522,16 +643,40 @@
 
     .chord-bar {
       padding: 3px 12px;
-      min-height: 34px;
+      min-height: 32px;
     }
 
     #chord-current {
-      font-size: 16px;
-      padding: 1px 10px;
+      font-size: 15px;
+      padding: 1px 9px;
     }
 
     .chord-right {
       font-size: 11px;
+    }
+
+    .ukulele-box {
+      width: 118px;
+      padding: 4px 5px;
+      gap: 2px;
+    }
+
+    .uke-header {
+      display: none;
+    }
+
+    .uke-chord-title {
+      font-size: 13px;
+    }
+
+    .uke-diagram-wrap {
+      max-width: 96px;
+      padding: 3px 2px 2px;
+    }
+
+    .uke-frets-pill {
+      font-size: 10.5px;
+      padding: 1px 6px;
     }
   }
 </style>
@@ -562,6 +707,9 @@
   </div>
 
   <div class="actions-right">
+    <button id="toggle-violin" type="button" aria-pressed="false" title="Mostrar pentagrama de violín y destacar violín 2">
+      <span aria-hidden="true">🎻</span><span>Violín</span>
+    </button>
     <button id="fs" class="btn-sec" type="button" title="Pantalla completa">
       <span aria-hidden="true">⛶</span><span class="fs-label">Pantalla completa</span>
     </button>
@@ -582,7 +730,17 @@
       <span id="chord-next">—</span>
     </div>
   </header>
-  <main id="stage"><canvas id="cv"></canvas></main>
+
+  <div class="stage-body">
+    <aside class="ukulele-box" aria-label="Posición del acorde en ukelele">
+      <span class="uke-header">Ukelele</span>
+      <div class="uke-chord-title" id="uke-chord-name">Re menor</div>
+      <div class="uke-diagram-wrap" id="uke-diagram"></div>
+      <div class="uke-frets-pill" id="uke-frets-text">2 · 2 · 1 · 0</div>
+    </aside>
+
+    <main id="stage"><canvas id="cv"></canvas></main>
+  </div>
 </section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
@@ -592,11 +750,13 @@ function initApp() {
   const el = id => document.getElementById(id);
 
   /* ============================================================================
-     1. CONFIGURACIÓN DE ARCHIVOS MIDI (EXPORTADOS DESDE MUSESCORE) Y ACORDES
+     1. CONFIGURACIÓN DE ARCHIVOS MIDI Y ACORDES
      ============================================================================ */
   const MIDI_FILES = {
     melody:     "./midis/melodiaprincipal.mid",
     piano:      "./midis/piano.mid",          // Un solo MIDI de piano (2 pentagramas de MuseScore)
+    violin:     "./midis/violin.mid",         // Tercer MIDI opcional de violín ("violin")
+    violinAlt:  "./violin.mid",               // Respaldo por si está en la carpeta raíz
     leftAlt:    "./midis/pianoizquierda.mid", // Respaldo opcional si se exportan por separado
     rightAlt:   "./midis/pianoderecha.mid"    // Respaldo opcional si se exportan por separado
   };
@@ -611,8 +771,7 @@ function initApp() {
   /**
    * DEFINICIÓN MANUAL DE ACORDES (OPCIONAL, POR COMPÁS DE 3 PULSOS):
    * - Si dejas esta lista vacía ([]), la app detecta AUTOMÁTICAMENTE el acorde
-   *   cada 3 pulsos leyendo la nota fundamental del pulso 1 (ej. Re3 - La3 - Re4/Fa4
-   *   en pulsos 1, 2 y 3 se reconoce como un único acorde "Re menor" desde el pulso 1).
+   *   cada 3 pulsos leyendo la nota fundamental del pulso 1.
    * - Si el mismo acorde continúa en el siguiente grupo de 3 pulsos, no se repite.
    */
   const ACORDES_MANUALES = [
@@ -631,6 +790,120 @@ function initApp() {
     0: { nombre: "Do Mayor",  nota: "Do"  }, // C
     9: { nombre: "La 7",      nota: "La"  }  // A
   };
+
+  /* Diagramas de acordes para Ukelele (afinación estándar G - C - E - A) */
+  const UKULELE_CHORDS = {
+    "re menor":   { frets: [2, 2, 1, 0], fingers: [2, 3, 1, 0] },
+    "dm":         { frets: [2, 2, 1, 0], fingers: [2, 3, 1, 0] },
+    "fa mayor":   { frets: [2, 0, 1, 0], fingers: [2, 0, 1, 0] },
+    "f":          { frets: [2, 0, 1, 0], fingers: [2, 0, 1, 0] },
+    "sol menor":  { frets: [0, 2, 3, 1], fingers: [0, 2, 3, 1] },
+    "gm":         { frets: [0, 2, 3, 1], fingers: [0, 2, 3, 1] },
+    "do mayor":   { frets: [0, 0, 0, 3], fingers: [0, 0, 0, 3] },
+    "c":          { frets: [0, 0, 0, 3], fingers: [0, 0, 0, 3] },
+    "la 7":       { frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0] },
+    "a7":         { frets: [0, 1, 0, 0], fingers: [0, 1, 0, 0] },
+    "la menor":   { frets: [2, 0, 0, 0], fingers: [2, 0, 0, 0] },
+    "am":         { frets: [2, 0, 0, 0], fingers: [2, 0, 0, 0] },
+    "sol mayor":  { frets: [0, 2, 3, 2], fingers: [0, 1, 3, 2] },
+    "g":          { frets: [0, 2, 3, 2], fingers: [0, 1, 3, 2] },
+    "re mayor":   { frets: [2, 2, 2, 0], fingers: [1, 2, 3, 0] },
+    "d":          { frets: [2, 2, 2, 0], fingers: [1, 2, 3, 0] },
+    "sib mayor":  { frets: [3, 2, 1, 1], fingers: [3, 2, 1, 1] },
+    "bb":         { frets: [3, 2, 1, 1], fingers: [3, 2, 1, 1] },
+    "mi menor":   { frets: [0, 4, 3, 2], fingers: [0, 3, 2, 1] },
+    "em":         { frets: [0, 4, 3, 2], fingers: [0, 3, 2, 1] },
+    "re 7":       { frets: [2, 2, 2, 3], fingers: [1, 1, 1, 2] },
+    "d7":         { frets: [2, 2, 2, 3], fingers: [1, 1, 1, 2] },
+    "sol 7":      { frets: [0, 2, 1, 2], fingers: [0, 2, 1, 3] },
+    "g7":         { frets: [0, 2, 1, 2], fingers: [0, 2, 1, 3] },
+    "do 7":       { frets: [0, 0, 0, 1], fingers: [0, 0, 0, 1] },
+    "c7":         { frets: [0, 0, 0, 1], fingers: [0, 0, 0, 1] }
+  };
+
+  function renderUkuleleDiagram(chordName) {
+    const cleanName = (chordName || "Re menor").trim();
+    const shape = UKULELE_CHORDS[cleanName.toLowerCase()] || UKULELE_CHORDS["re menor"];
+    const frets = shape.frets;
+    const fingers = shape.fingers || [0, 0, 0, 0];
+
+    el("uke-chord-name").textContent = cleanName;
+    el("uke-frets-text").textContent = frets.map(f => (f < 0 ? "✕" : f)).join(" · ");
+
+    const positiveFrets = frets.filter(f => f > 0);
+    const maxFret = positiveFrets.length ? Math.max(...positiveFrets) : 3;
+    const minFret = positiveFrets.length ? Math.min(...positiveFrets) : 1;
+    const baseFret = maxFret > 4 ? minFret : 1;
+
+    const stringNames = ["G", "C", "E", "A"];
+    const startX = 28;
+    const stepX = 25;
+    const topY = 38;
+    const fretH = 24;
+    const numFrets = 4;
+    const endX = startX + stepX * 3;
+    const endY = topY + fretH * numFrets;
+
+    let svg = `<svg viewBox="0 0 124 146" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Acorde ${cleanName} en ukelele: ${frets.join("-")}">`;
+
+    // Nombres de cuerdas arriba (G C E A)
+    for (let s = 0; s < 4; s++) {
+      const x = startX + s * stepX;
+      svg += `<text x="${x}" y="14" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10.5" font-weight="800" fill="#64748B">${stringNames[s]}</text>`;
+    }
+
+    // Círculos de cuerda al aire (0) o X de cuerda muteada
+    for (let s = 0; s < 4; s++) {
+      const x = startX + s * stepX;
+      const f = frets[s];
+      if (f === 0) {
+        svg += `<circle cx="${x}" cy="27" r="4.2" fill="none" stroke="#22C55E" stroke-width="1.8"/>`;
+      } else if (f < 0) {
+        svg += `<text x="${x}" y="31" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#EF4444">✕</text>`;
+      }
+    }
+
+    // Líneas horizontales de los trastes y números de traste
+    for (let f = 0; f <= numFrets; f++) {
+      const y = topY + f * fretH;
+      const isNut = (f === 0 && baseFret === 1);
+      svg += `<line x1="${startX - 1}" y1="${y}" x2="${endX + 1}" y2="${y}" stroke="${isNut ? "#1E293B" : "#CBD5E1"}" stroke-width="${isNut ? 4.2 : 1.5}" stroke-linecap="round"/>`;
+      if (f < numFrets) {
+        const fretNum = baseFret + f;
+        const labelY = y + fretH / 2 + 3.5;
+        svg += `<text x="14" y="${labelY}" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" font-weight="700" fill="#94A3B8">${fretNum}</text>`;
+      }
+    }
+
+    // 4 cuerdas verticales
+    for (let s = 0; s < 4; s++) {
+      const x = startX + s * stepX;
+      svg += `<line x1="${x}" y1="${topY}" x2="${x}" y2="${endY}" stroke="#64748B" stroke-width="${1.8 - s * 0.15}"/>`;
+    }
+
+    // Puntos de digitación en los trastes
+    for (let s = 0; s < 4; s++) {
+      const f = frets[s];
+      if (f > 0) {
+        const relFret = f - baseFret + 1;
+        if (relFret >= 1 && relFret <= numFrets) {
+          const cx = startX + s * stepX;
+          const cy = topY + (relFret - 0.5) * fretH;
+          const finger = fingers[s];
+          svg += `<circle cx="${cx}" cy="${cy}" r="8.5" fill="#4F46E5" stroke="#FFFFFF" stroke-width="1.5"/>`;
+          if (finger > 0) {
+            svg += `<text x="${cx}" y="${cy + 3.5}" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" font-weight="800" fill="#FFFFFF">${finger}</text>`;
+          }
+        }
+      }
+    }
+
+    svg += `</svg>`;
+    el("uke-diagram").innerHTML = svg;
+  }
+
+  // Render inicial del diagrama de ukelele
+  renderUkuleleDiagram("Re menor");
 
   /* ============================================================================
      2. RANGO DEL PIANO: DE A2 (45) A B4 (71) SIN CORRECCIÓN FORZADA DE OCTAVA
@@ -672,8 +945,10 @@ function initApp() {
   }
 
   /* ============================================================================
-     3. SONIDO REAL DE PIANO ACÚSTICO Y MELODÍA (Tone.js)
+     3. SONIDO REAL DE PIANO, VOZ/MELODÍA Y VIOLÍN (Tone.js)
      ============================================================================ */
+  let violinMode = false;
+
   /* Reverb sutil de sala para calidez acústica */
   const roomReverb = new Tone.Reverb({
     decay: 1.4,
@@ -700,7 +975,6 @@ function initApp() {
       release: 0.45
     }
   }).connect(pianoFallbackFilter);
-  pianoFallbackSynth.volume.value = -4;
 
   /* Muestreador de Piano Acústico Real (Salamander Grand Piano) */
   let pianoSamplerLoaded = false;
@@ -730,7 +1004,6 @@ function initApp() {
       pianoSamplerLoaded = false;
     }
   }).connect(roomReverb);
-  pianoSampler.volume.value = 1;
 
   function triggerPianoNote(midi, durSec, time, vel) {
     const freqOrNote = Tone.Frequency(midi, "midi").toNote();
@@ -746,13 +1019,73 @@ function initApp() {
     try { pianoFallbackSynth.releaseAll(); } catch (e) {}
   }
 
-  /* Melodía principal de fondo en todo momento (timbre dulce de flauta) */
+  /* Melodía principal / Voz de fondo */
   const vibrato = new Tone.Vibrato(4.5, 0.05).connect(roomReverb);
   const melodySynth = new Tone.PolySynth(Tone.Synth, {
     oscillator: { type: "custom", partials: [1, 0.22, 0.05] },
     envelope: { attack: 0.04, decay: 0.12, sustain: 0.80, release: 0.18 }
   }).connect(vibrato);
-  melodySynth.volume.value = -8;
+
+  /* Violín 1 y Violín 2 (timbre expresivo de cuerda frotada con vibrato) */
+  const violinFilter = new Tone.Filter({
+    type: "lowpass",
+    frequency: 3400,
+    Q: 1.1
+  }).connect(roomReverb);
+
+  const violinVibrato = new Tone.Vibrato(5.2, 0.065).connect(violinFilter);
+
+  const violin1Synth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: {
+      type: "custom",
+      partials: [1, 0.80, 0.62, 0.46, 0.32, 0.20, 0.11]
+    },
+    envelope: {
+      attack: 0.075,
+      decay: 0.14,
+      sustain: 0.86,
+      release: 0.24
+    }
+  }).connect(violinVibrato);
+
+  const violin2Synth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: {
+      type: "custom",
+      partials: [1, 0.85, 0.68, 0.52, 0.36, 0.24, 0.14]
+    },
+    envelope: {
+      attack: 0.07,
+      decay: 0.14,
+      sustain: 0.88,
+      release: 0.24
+    }
+  }).connect(violinVibrato);
+
+  function releaseAllViolin() {
+    try { violin1Synth.releaseAll(); } catch (e) {}
+    try { violin2Synth.releaseAll(); } catch (e) {}
+  }
+
+  /* Balance de volúmenes según si el pentagrama de Violín está seleccionado */
+  function updateAudioMix() {
+    if (violinMode) {
+      // Baja el volumen del teclado y la voz, y deja más fuerte el violín (especialmente violín 2)
+      pianoSampler.volume.value = -11;
+      pianoFallbackSynth.volume.value = -16;
+      melodySynth.volume.value = -19;
+      violin1Synth.volume.value = -1;
+      violin2Synth.volume.value = 4.5;
+    } else {
+      pianoSampler.volume.value = 1;
+      pianoFallbackSynth.volume.value = -4;
+      melodySynth.volume.value = -8;
+      violin1Synth.volume.value = -Infinity;
+      violin2Synth.volume.value = -Infinity;
+      releaseAllViolin();
+    }
+  }
+
+  updateAudioMix();
 
   /* Metrónomo suave solo para el compás de cuenta previa */
   const clickSynth = new Tone.MembraneSynth({
@@ -763,12 +1096,14 @@ function initApp() {
   clickSynth.volume.value = -13;
 
   /* ============================================================================
-     4. CARGA, SEPARACIÓN DE MANOS Y DETECCIÓN DE ACORDES CADA 3 PULSOS
+     4. CARGA DE MIDIS, SEPARACIÓN DE MANOS Y DETECCIÓN DE ACORDES CADA 3 PULSOS
      ============================================================================ */
   let song = {
     leftNotes: [],
     rightNotes: [],
     melodyNotes: [],
+    violinNotes: [],
+    hasViolinMidi: false,
     chords: [],
     bpm: 100,
     num: 3,
@@ -805,12 +1140,38 @@ function initApp() {
     return out.sort((a, b) => a.startBeatRaw - b.startBeatRaw);
   }
 
+  /* Extrae pistas de violín diferenciando Violín 1 y Violín 2 si hay 2 pistas */
+  function extractViolinRawNotes(violinMidi) {
+    const out = [];
+    if (!violinMidi) return out;
+    const ppq = violinMidi.header.ppq || 480;
+    const validTracks = violinMidi.tracks.filter(
+      tr => (!tr.instrument || !tr.instrument.percussion) && tr.notes.length > 0
+    );
+
+    validTracks.forEach((tr, trackIdx) => {
+      // Si hay 1 sola pista, se asigna a Violín 2 (protagonista fuerte).
+      // Si hay 2 o más pistas, pista 0 = Violín 1 y pista 1+ = Violín 2 (más fuerte).
+      const voice = validTracks.length === 1 ? 2 : (trackIdx === 0 ? 1 : 2);
+      tr.notes.forEach(n => {
+        out.push({
+          midi: n.midi,
+          voice,
+          startBeatRaw: n.ticks / ppq,
+          durBeats: Math.max(0.08, n.durationTicks / ppq),
+          vel: n.velocity || 0.85
+        });
+      });
+    });
+
+    return out.sort((a, b) => a.startBeatRaw - b.startBeatRaw);
+  }
+
   /* Separa automáticamente un único MIDI de piano (MuseScore) en mano izquierda y derecha */
   function splitPianoHands(pianoMidi) {
     if (!pianoMidi) return { leftRaw: [], rightRaw: [] };
     const ppq = pianoMidi.header.ppq || 480;
 
-    // Filtrar pistas melódicas que contengan notas (MuseScore exporta 1 pista por pentagrama)
     const validTracks = pianoMidi.tracks
       .filter(tr => (!tr.instrument || !tr.instrument.percussion) && tr.notes.length > 0)
       .map((tr, idx) => {
@@ -827,7 +1188,6 @@ function initApp() {
 
     if (!validTracks.length) return { leftRaw: [], rightRaw: [] };
 
-    // CASO 1 (Estándar MuseScore): 2 o más pistas (pentagrama superior = derecha, inferior = izquierda)
     if (validTracks.length >= 2) {
       validTracks.sort((a, b) => {
         if (Math.abs(a.avgPitch - b.avgPitch) > 0.5) return a.avgPitch - b.avgPitch;
@@ -841,7 +1201,6 @@ function initApp() {
       return { leftRaw, rightRaw };
     }
 
-    // CASO 2: 1 sola pista con 2 canales MIDI distintos
     const singleNotes = validTracks[0].notes;
     const channels = [...new Set(singleNotes.map(n => n.channel))];
     if (channels.length >= 2) {
@@ -857,7 +1216,6 @@ function initApp() {
       };
     }
 
-    // CASO 3: 1 sola pista y 1 solo canal -> dividir por altura (NOTA_DIVISION)
     const leftRaw = [];
     const rightRaw = [];
     for (const n of singleNotes) {
@@ -913,7 +1271,6 @@ function initApp() {
     const sourceNotes = leftNotes.length > 0 ? leftNotes : rightNotes;
     if (!sourceNotes.length) return [];
 
-    // Agrupar notas por bloques de 3 pulsos (0..3, 3..6, 6..9, etc.)
     const blocks = new Map();
     for (const n of sourceNotes) {
       const relBeat = Math.max(0, n.startBeat - leadBeats);
@@ -927,7 +1284,6 @@ function initApp() {
         });
       } else {
         const blk = blocks.get(blockIdx);
-        // Tomar la nota más grave del primer ataque dentro de este bloque de 3 pulsos (pulso 1)
         if (Math.abs(n.startBeat - blk.firstBeat) < 0.08) {
           if (n.midi < blk.lowestMidi) blk.lowestMidi = n.midi;
         }
@@ -941,7 +1297,6 @@ function initApp() {
     for (const blk of sortedBlocks) {
       const pc = ((blk.lowestMidi % 12) + 12) % 12;
       const chordInfo = ACORDES_POR_FUNDAMENTAL[pc];
-      // Solo registrar la primera vez que aparece este acorde (no repetir si los siguientes 3 pulsos mantienen el mismo acorde)
       if (chordInfo && chordInfo.nombre !== lastChordName) {
         timeline.push({
           startBeat: blk.firstBeat,
@@ -955,14 +1310,14 @@ function initApp() {
     return timeline;
   }
 
-  function setupSongData(melodyMidi, pianoMidi, leftAltMidi, rightAltMidi) {
+  function setupSongData(melodyMidi, pianoMidi, violinMidi, leftAltMidi, rightAltMidi) {
     resetPlayback();
     const T = Tone.Transport;
     T.cancel();
     const ppq = 480;
     T.PPQ = ppq;
 
-    const refMidi = melodyMidi || pianoMidi || rightAltMidi || leftAltMidi;
+    const refMidi = melodyMidi || pianoMidi || violinMidi || rightAltMidi || leftAltMidi;
     const bpm = (refMidi && refMidi.header.tempos.length) ? refMidi.header.tempos[0].bpm : 100;
     const rawNum = (refMidi && refMidi.header.timeSignatures.length)
       ? refMidi.header.timeSignatures[0].timeSignature[0]
@@ -983,11 +1338,12 @@ function initApp() {
     }
 
     const melodyRaw = extractRawNotes(melodyMidi);
+    const violinRaw = extractViolinRawNotes(violinMidi);
 
-    // Mapeo directo al MIDI real sin forzar desplazamientos de octava
     const mapHandNotes = (rawList, hand) => rawList.map(n => ({
       midi: n.midi,
       displayMidi: n.midi,
+      voice: n.voice || 1,
       hand,
       startBeat: n.startBeatRaw + lead,
       durBeats: n.durBeats,
@@ -997,16 +1353,19 @@ function initApp() {
     const melodyNotes = mapHandNotes(melodyRaw, "melody");
     const leftNotes   = mapHandNotes(leftRaw,   "left");
     const rightNotes  = mapHandNotes(rightRaw,  "right");
+    const violinNotes = mapHandNotes(violinRaw, "violin");
 
     const chords = buildChordTimeline(leftNotes, rightNotes, lead);
 
-    const allNotes = [...melodyNotes, ...leftNotes, ...rightNotes];
+    const allNotes = [...melodyNotes, ...leftNotes, ...rightNotes, ...violinNotes];
     const maxBeat = allNotes.reduce((acc, n) => Math.max(acc, n.startBeat + n.durBeats), lead + 3);
 
     song = {
       melodyNotes,
       leftNotes,
       rightNotes,
+      violinNotes,
+      hasViolinMidi: violinNotes.length > 0,
       chords,
       bpm,
       num,
@@ -1015,7 +1374,7 @@ function initApp() {
       loaded: allNotes.length > 0
     };
 
-    // Melodía principal sonando de fondo en todo momento
+    // Melodía principal / Voz
     melodyNotes.forEach(n => {
       const startTicks = Math.round(n.startBeat * ppq);
       const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.94));
@@ -1035,6 +1394,22 @@ function initApp() {
       }, startTicks + "i");
     });
 
+    // Violín (solo suena cuando violinMode está seleccionado)
+    violinNotes.forEach(n => {
+      const startTicks = Math.round(n.startBeat * ppq);
+      const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.96));
+      T.schedule(time => {
+        if (!violinMode) return;
+        const dSec = Math.max(new Tone.Ticks(durTicks).toSeconds(), 0.10);
+        const freq = Tone.Frequency(n.midi, "midi").toFrequency();
+        if (n.voice === 2) {
+          violin2Synth.triggerAttackRelease(freq, dSec, time, Math.min(1, n.vel * 1.05));
+        } else {
+          violin1Synth.triggerAttackRelease(freq, dSec, time, n.vel * 0.82);
+        }
+      }, startTicks + "i");
+    });
+
     // Clic de cuenta previa solo durante el primer compás de 3 pulsos (lead)
     T.scheduleRepeat(time => {
       const b = Math.round(T.getTicksAtTime(time) / ppq);
@@ -1050,13 +1425,23 @@ function initApp() {
   }
 
   async function loadAllMidis() {
-    const [melRes, pianoRes] = await Promise.allSettled([
+    const [melRes, pianoRes, violinRes] = await Promise.allSettled([
       fetchMidiFile(MIDI_FILES.melody),
-      fetchMidiFile(MIDI_FILES.piano)
+      fetchMidiFile(MIDI_FILES.piano),
+      fetchMidiFile(MIDI_FILES.violin)
     ]);
 
     const melodyMidi = melRes.status === "fulfilled" ? melRes.value : null;
     const pianoMidi  = pianoRes.status === "fulfilled" ? pianoRes.value : null;
+    let violinMidi   = violinRes.status === "fulfilled" ? violinRes.value : null;
+
+    if (!violinMidi) {
+      try {
+        violinMidi = await fetchMidiFile(MIDI_FILES.violinAlt);
+      } catch (e) {
+        violinMidi = null;
+      }
+    }
 
     let leftAltMidi = null;
     let rightAltMidi = null;
@@ -1070,17 +1455,17 @@ function initApp() {
       rightAltMidi = rRes.status === "fulfilled" ? rRes.value : null;
     }
 
-    if (!melodyMidi && !pianoMidi && !leftAltMidi && !rightAltMidi) {
+    if (!melodyMidi && !pianoMidi && !violinMidi && !leftAltMidi && !rightAltMidi) {
       el("chord-current").textContent = "Falta ./midis/piano.mid";
       el("chord-current").classList.add("is-empty");
       return;
     }
 
-    setupSongData(melodyMidi, pianoMidi, leftAltMidi, rightAltMidi);
+    setupSongData(melodyMidi, pianoMidi, violinMidi, leftAltMidi, rightAltMidi);
   }
 
   /* ============================================================================
-     5. BARRA DE ACORDES SUPERIOR
+     5. BARRA DE ACORDES SUPERIOR + DIAGRAMA DE UKELELE
      ============================================================================ */
   let lastRenderedChord = "";
 
@@ -1094,6 +1479,7 @@ function initApp() {
         curEl.textContent = "Re menor";
         curEl.classList.remove("is-empty");
         rootEl.textContent = "Base: Re";
+        renderUkuleleDiagram("Re menor");
       }
       nextEl.textContent = "—";
       return;
@@ -1117,6 +1503,7 @@ function initApp() {
         curEl.classList.remove("is-empty");
         rootEl.textContent = first.nota ? `Prepárate · Base: ${first.nota}` : "Prepárate";
         nextEl.textContent = song.chords[1] ? song.chords[1].nombre : "—";
+        renderUkuleleDiagram(first.nombre);
       }
       return;
     }
@@ -1131,6 +1518,7 @@ function initApp() {
       curEl.classList.remove("is-empty");
       rootEl.textContent = current.nota ? `Base: ${current.nota}` : "";
       nextEl.textContent = next ? next.nombre : "Final";
+      renderUkuleleDiagram(current.nombre);
 
       curEl.style.transform = "scale(1.05)";
       setTimeout(() => { curEl.style.transform = "scale(1)"; }, 130);
@@ -1138,7 +1526,7 @@ function initApp() {
   }
 
   /* ============================================================================
-     6. CONTROLES DE REPRODUCCIÓN, VELOCIDAD, SEEK Y PANTALLA COMPLETA
+     6. CONTROLES DE REPRODUCCIÓN, VIOLÍN OPCIONAL, VELOCIDAD Y PANTALLA COMPLETA
      ============================================================================ */
   const ticksNow = () => Tone.Transport.getTicksAtTime(Tone.getContext().currentTime);
   const getBeat = () => (Tone.Transport.state === "started" ? ticksNow() : posTicks) / Tone.Transport.PPQ;
@@ -1154,6 +1542,7 @@ function initApp() {
     posTicks = 0;
     melodySynth.releaseAll();
     releaseAllPiano();
+    releaseAllViolin();
     setPlayButtonState(false);
     el("seek").value = 0;
     lastRenderedChord = "";
@@ -1168,6 +1557,7 @@ function initApp() {
       T.pause();
       melodySynth.releaseAll();
       releaseAllPiano();
+      releaseAllViolin();
       setPlayButtonState(false);
     } else {
       if (posTicks / T.PPQ >= song.endBeat - 0.01) posTicks = 0;
@@ -1177,6 +1567,16 @@ function initApp() {
   });
 
   el("stop").addEventListener("click", resetPlayback);
+
+  /* Botón opcional de pentagrama de violín */
+  const violinBtn = el("toggle-violin");
+  violinBtn.addEventListener("click", async () => {
+    await Tone.start();
+    violinMode = !violinMode;
+    violinBtn.setAttribute("aria-pressed", String(violinMode));
+    updateAudioMix();
+    computeLayout();
+  });
 
   el("speed").addEventListener("input", e => {
     const v = parseInt(e.target.value, 10);
@@ -1261,6 +1661,7 @@ function initApp() {
       Tone.Transport.pause();
       melodySynth.releaseAll();
       releaseAllPiano();
+      releaseAllViolin();
     }
   });
 
@@ -1283,12 +1684,13 @@ function initApp() {
       Tone.Transport.pause();
       melodySynth.releaseAll();
       releaseAllPiano();
+      releaseAllViolin();
       Tone.Transport.start(undefined, posTicks + "i");
     }
   });
 
   /* ============================================================================
-     7. RENDERIZADO SYNTHESIA (CAÍDA DE NOTAS + TECLADO DE A2 A B4)
+     7. RENDERIZADO SYNTHESIA (CAÍDA + TECLADO A2-B4 + PENTAGRAMA DE VIOLÍN)
      ============================================================================ */
   const cv = el("cv");
   const ctx = cv.getContext("2d");
@@ -1298,6 +1700,7 @@ function initApp() {
   const L = {
     keyH: 130,
     fallH: 320,
+    staffH: 0,
     whiteW: 42,
     blackW: 25,
     blackH: 80,
@@ -1308,21 +1711,36 @@ function initApp() {
     const isPortraitMobile = W < 650 && H >= W;
     const isLandscapeMobile = H < 500 && W > H;
 
-    if (isPortraitMobile) {
-      L.keyH = Math.max(105, Math.min(148, Math.round(H * 0.24)));
-    } else if (isLandscapeMobile) {
-      L.keyH = Math.max(78, Math.min(112, Math.round(H * 0.30)));
+    if (violinMode) {
+      // Al seleccionar el violín, el teclado sube y deja espacio inferior al pentagrama
+      if (isPortraitMobile) {
+        L.staffH = Math.max(105, Math.min(138, Math.round(H * 0.26)));
+        L.keyH   = Math.max(85,  Math.min(120, Math.round(H * 0.21)));
+      } else if (isLandscapeMobile) {
+        L.staffH = Math.max(82,  Math.min(110, Math.round(H * 0.30)));
+        L.keyH   = Math.max(66,  Math.min(92,  Math.round(H * 0.25)));
+      } else {
+        L.staffH = Math.max(115, Math.min(155, Math.round(H * 0.27)));
+        L.keyH   = Math.max(98,  Math.min(140, Math.round(H * 0.22)));
+      }
     } else {
-      L.keyH = Math.max(125, Math.min(180, Math.round(H * 0.25)));
+      L.staffH = 0;
+      if (isPortraitMobile) {
+        L.keyH = Math.max(105, Math.min(148, Math.round(H * 0.24)));
+      } else if (isLandscapeMobile) {
+        L.keyH = Math.max(78, Math.min(112, Math.round(H * 0.30)));
+      } else {
+        L.keyH = Math.max(125, Math.min(180, Math.round(H * 0.25)));
+      }
     }
 
-    L.fallH = Math.max(80, H - L.keyH);
+    L.fallH = Math.max(70, H - L.keyH - L.staffH);
     L.whiteW = W / WHITE_KEYS.length; // 16 teclas blancas de A2 a B4
     L.blackW = L.whiteW * 0.60;
     L.blackH = L.keyH * 0.62;
 
     const visibleBeats = isLandscapeMobile ? 3.4 : (isPortraitMobile ? 4.8 : 4.5);
-    L.pxPerBeat = Math.max(54, L.fallH / visibleBeats);
+    L.pxPerBeat = Math.max(46, L.fallH / visibleBeats);
 
     WHITE_KEYS.forEach((k, idx) => {
       k.x = idx * L.whiteW;
@@ -1353,11 +1771,11 @@ function initApp() {
   window.addEventListener("resize", resize);
   resize();
 
-  /* Permite tocar las teclas del piano directamente en pantalla para probar sonido */
+  /* Permite tocar las teclas del piano directamente en pantalla */
   let manualPressedMidi = null;
 
   function findKeyAtPoint(px, py) {
-    if (py < L.fallH) return null;
+    if (py < L.fallH || py > L.fallH + L.keyH) return null;
     const localY = py - L.fallH;
     for (const bk of BLACK_KEYS) {
       if (px >= bk.x && px <= bk.x + bk.w && localY <= bk.h) return bk;
@@ -1461,7 +1879,6 @@ function initApp() {
       const bx = key.x + padX;
       const bw = Math.max(6, key.w - padX * 2);
 
-      // Verde claro (mano izquierda) y Naranja claro (mano derecha)
       let fillColor, borderColor, textColor;
       if (n.hand === "left") {
         fillColor = key.isBlack ? "#4ADE80" : "#86EFAC";
@@ -1488,7 +1905,7 @@ function initApp() {
       ctx.strokeStyle = isActive ? "#FFFFFF" : borderColor;
       ctx.stroke();
 
-      if (drawH >= 20 && bw >= 16) {
+      if (drawH >= 18 && bw >= 15) {
         const fontSize = Math.max(9, Math.min(13, Math.round(bw * 0.35)));
         ctx.fillStyle = textColor;
         ctx.font = `800 ${fontSize}px 'Nunito', sans-serif`;
@@ -1539,7 +1956,7 @@ function initApp() {
         ctx.font = `${wk.pc === 0 ? "900" : "700"} ${fontSize}px 'Nunito', sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
-        ctx.fillText(wk.label, wk.x + wk.w / 2, topY + wk.h - 6);
+        ctx.fillText(wk.label, wk.x + wk.w / 2, topY + wk.h - 5);
       }
     }
 
@@ -1561,21 +1978,292 @@ function initApp() {
       ctx.strokeStyle = hand ? "#FFFFFF" : "#0F172A";
       ctx.stroke();
 
-      // Etiqueta de Sib en las teclas negras de Bb cuando hay ancho suficiente
       if (bk.pc === 10 && bk.w >= 15) {
         const fontSize = Math.max(8, Math.min(11, Math.round(bk.w * 0.44)));
         ctx.fillStyle = hand ? "#052E16" : "#CBD5E1";
         ctx.font = `800 ${fontSize}px 'Nunito', sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
-        ctx.fillText("Sib", bk.x + bk.w / 2, topY + bk.h - 5);
+        ctx.fillText("Sib", bk.x + bk.w / 2, topY + bk.h - 4);
       }
       ctx.restore();
     }
 
-    // 3. Línea de impacto luminosa
+    // 3. Línea de impacto luminosa superior
     ctx.fillStyle = "#4F46E5";
     ctx.fillRect(0, topY - 2, W, 3);
+  }
+
+  /* ============================================================================
+     8. PENTAGRAMA DE VIOLÍN (CLAVE DE SOL, DESPLAZAMIENTO HORIZONTAL)
+     ============================================================================ */
+  // Mapeo diatónico en Clave de Sol (0 = línea inferior E4, 8 = línea superior F5)
+  const PC_TO_STAFF_INFO = {
+    0:  { step: 0, acc: ""  }, // Do
+    1:  { step: 0, acc: "♯" }, // Do#
+    2:  { step: 1, acc: ""  }, // Re
+    3:  { step: 2, acc: "♭" }, // Mib
+    4:  { step: 2, acc: ""  }, // Mi
+    5:  { step: 3, acc: ""  }, // Fa
+    6:  { step: 3, acc: "♯" }, // Fa#
+    7:  { step: 4, acc: ""  }, // Sol
+    8:  { step: 4, acc: "♯" }, // Sol#
+    9:  { step: 5, acc: ""  }, // La
+    10: { step: 6, acc: "♭" }, // Sib
+    11: { step: 6, acc: ""  }  // Si
+  };
+
+  function midiToTrebleStep(midi) {
+    const pc = ((midi % 12) + 12) % 12;
+    const octave = Math.floor(midi / 12) - 1;
+    const info = PC_TO_STAFF_INFO[pc];
+    // E4 (midi 64) => octave 4, step 2 => base = 4*7 + 2 = 30
+    const absStep = octave * 7 + info.step - 30;
+    return { step: absStep, acc: info.acc, pc };
+  }
+
+  function drawViolinStaff(beat) {
+    if (!violinMode || L.staffH <= 0) return;
+
+    const staffTop = L.fallH + L.keyH;
+    const staffH = L.staffH;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, staffTop, W, staffH);
+    ctx.clip();
+
+    // Fondo claro tipo partitura
+    ctx.fillStyle = "#FFFDF9";
+    ctx.fillRect(0, staffTop, W, staffH);
+
+    // Borde superior separador respecto al teclado
+    ctx.fillStyle = "#7C3AED";
+    ctx.fillRect(0, staffTop, W, 3);
+
+    // Geometría de las 5 líneas del pentagrama
+    const lineGap = Math.max(7.5, Math.min(11.5, staffH * 0.082));
+    const halfStep = lineGap / 2;
+    const bottomLineY = staffTop + staffH * 0.66; // Línea 1 (E4)
+    const topLineY = bottomLineY - 4 * lineGap;   // Línea 5 (F5)
+
+    // Dibujar las 5 líneas del pentagrama
+    ctx.strokeStyle = "#94A3B8";
+    ctx.lineWidth = 1.15;
+    for (let i = 0; i < 5; i++) {
+      const y = bottomLineY - i * lineGap;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+    }
+
+    const clefAreaW = 54;
+    const playheadX = Math.min(92, Math.max(72, W * 0.12));
+    const staffPxPerBeat = Math.max(54, Math.min(96, W / 10.5));
+
+    // Barras divisorias de compás (cada 3 pulsos)
+    const m = PULSOS_POR_ACORDE;
+    const minBeatVisible = beat - (playheadX - clefAreaW) / staffPxPerBeat - 1;
+    const maxBeatVisible = beat + (W - playheadX) / staffPxPerBeat + 2;
+    let b = Math.max(0, Math.floor(minBeatVisible / m) * m);
+    for (; b <= maxBeatVisible; b += m) {
+      const x = playheadX + (b - beat) * staffPxPerBeat;
+      if (x < clefAreaW) continue;
+      ctx.strokeStyle = "#CBD5E1";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(x, topLineY);
+      ctx.lineTo(x, bottomLineY);
+      ctx.stroke();
+
+      const measureNum = Math.round(b / m);
+      if (measureNum >= 1) {
+        ctx.fillStyle = "#94A3B8";
+        ctx.font = "700 10px 'Nunito', sans-serif";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(String(measureNum), x + 4, topLineY - 3);
+      }
+    }
+
+    // Si no se encontró violin.mid, mostrar aviso claro
+    if (!song.hasViolinMidi) {
+      ctx.fillStyle = "#6D28D9";
+      ctx.font = "800 13px 'Nunito', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Coloca el archivo ./midis/violin.mid para ver y escuchar el pentagrama de violín", W / 2 + 20, (topLineY + bottomLineY) / 2);
+    } else {
+      // Dibujar las notas del violín desplazándose horizontalmente hacia el cursor
+      const rx = lineGap * 0.62;
+      const ry = lineGap * 0.46;
+
+      for (const n of song.violinNotes) {
+        if (n.startBeat + n.durBeats < minBeatVisible) continue;
+        if (n.startBeat > maxBeatVisible) break;
+
+        const nx = playheadX + (n.startBeat - beat) * staffPxPerBeat;
+        if (nx < clefAreaW - 16) continue;
+
+        const { step, acc, pc } = midiToTrebleStep(n.midi);
+        const ny = bottomLineY - step * halfStep;
+        const isActive = beat >= n.startBeat && beat < n.startBeat + n.durBeats;
+        const isVoice2 = n.voice === 2;
+
+        const noteColor = isActive
+          ? "#DC2626"
+          : (isVoice2 ? "#6D28D9" : "#0F766E");
+
+        // Barra horizontal sutil de duración
+        const durW = Math.max(rx * 2, n.durBeats * staffPxPerBeat - 4);
+        ctx.fillStyle = isActive ? "rgba(220, 38, 38, 0.16)" : "rgba(124, 58, 237, 0.10)";
+        roundRectPath(nx - rx, ny - ry * 0.8, durW, ry * 1.6, 4);
+        ctx.fill();
+
+        // Líneas adicionales (ledger lines) por debajo de E4 (step <= -2) o por encima de F5 (step >= 10)
+        ctx.strokeStyle = "#64748B";
+        ctx.lineWidth = 1.2;
+        if (step <= -2) {
+          for (let s = -2; s >= step; s -= 2) {
+            const ly = bottomLineY - s * halfStep;
+            ctx.beginPath();
+            ctx.moveTo(nx - rx - 4, ly);
+            ctx.lineTo(nx + rx + 4, ly);
+            ctx.stroke();
+          }
+        } else if (step >= 10) {
+          for (let s = 10; s <= step; s += 2) {
+            const ly = bottomLineY - s * halfStep;
+            ctx.beginPath();
+            ctx.moveTo(nx - rx - 4, ly);
+            ctx.lineTo(nx + rx + 4, ly);
+            ctx.stroke();
+          }
+        }
+
+        // Alteración (♯ o ♭) a la izquierda de la cabeza de nota
+        if (acc) {
+          ctx.fillStyle = noteColor;
+          ctx.font = `800 ${Math.round(lineGap * 1.35)}px 'Nunito', sans-serif`;
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          ctx.fillText(acc, nx - rx - 2, ny);
+        }
+
+        // Cabeza de nota (óvalo ligeramente inclinado)
+        const isHollow = n.durBeats >= 1.75; // Blanca o blanca con puntillo
+        ctx.save();
+        ctx.translate(nx, ny);
+        ctx.rotate(-0.28);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+        if (isHollow) {
+          ctx.fillStyle = "#FFFDF9";
+          ctx.fill();
+          ctx.lineWidth = 1.9;
+          ctx.strokeStyle = noteColor;
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = noteColor;
+          ctx.fill();
+        }
+        ctx.restore();
+
+        // Puntillo si dura ~3 pulsos (blanca con puntillo)
+        if (n.durBeats >= 2.75 && n.durBeats <= 3.3) {
+          ctx.fillStyle = noteColor;
+          ctx.beginPath();
+          ctx.arc(nx + rx + 4.5, ny - (step % 2 === 0 ? halfStep * 0.45 : 0), 2.1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Plica (stem) para figuras menores a redonda (< 3.75 pulsos)
+        if (n.durBeats < 3.75) {
+          const stemH = lineGap * 2.85;
+          const stemUp = step < 4; // Hacia arriba por debajo de Si4, hacia abajo desde Si4
+          ctx.strokeStyle = noteColor;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          if (stemUp) {
+            ctx.moveTo(nx + rx - 0.8, ny);
+            ctx.lineTo(nx + rx - 0.8, ny - stemH);
+          } else {
+            ctx.moveTo(nx - rx + 0.8, ny);
+            ctx.lineTo(nx - rx + 0.8, ny + stemH);
+          }
+          ctx.stroke();
+
+          // Corchete si dura <= 0.6 pulsos
+          if (n.durBeats <= 0.6) {
+            ctx.beginPath();
+            if (stemUp) {
+              ctx.moveTo(nx + rx - 0.8, ny - stemH);
+              ctx.quadraticCurveTo(nx + rx + 6, ny - stemH + 5, nx + rx + 4, ny - stemH + 12);
+            } else {
+              ctx.moveTo(nx - rx + 0.8, ny + stemH);
+              ctx.quadraticCurveTo(nx - rx + 6, ny + stemH - 5, nx - rx + 4, ny + stemH - 12);
+            }
+            ctx.stroke();
+          }
+        }
+
+        // Nombre de la nota debajo del pentagrama para lectura rápida
+        if (staffH >= 96) {
+          const labelY = Math.min(staffTop + staffH - 4, Math.max(bottomLineY + lineGap * 1.6, ny + lineGap * 1.45));
+          ctx.fillStyle = isActive ? "#DC2626" : "#475569";
+          ctx.font = `${isActive ? "900" : "700"} 10px 'Nunito', sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "bottom";
+          ctx.fillText(NOTE_NAMES_ES[pc], nx, labelY);
+        }
+      }
+    }
+
+    // Cursor vertical de lectura actual (playhead)
+    ctx.strokeStyle = "#EF4444";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(playheadX, staffTop + 5);
+    ctx.lineTo(playheadX, staffTop + staffH - 4);
+    ctx.stroke();
+
+    // Cabecera izquierda fija con Clave de Sol (𝄞)
+    ctx.fillStyle = "#F8FAFC";
+    ctx.fillRect(0, staffTop + 3, clefAreaW, staffH - 3);
+    ctx.strokeStyle = "#E2E8F0";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(clefAreaW, staffTop + 3);
+    ctx.lineTo(clefAreaW, staffTop + staffH);
+    ctx.stroke();
+
+    // Redibujar las 5 líneas dentro de la cabecera de clave
+    ctx.strokeStyle = "#94A3B8";
+    ctx.lineWidth = 1.15;
+    for (let i = 0; i < 5; i++) {
+      const y = bottomLineY - i * lineGap;
+      ctx.beginPath();
+      ctx.moveTo(4, y);
+      ctx.lineTo(clefAreaW, y);
+      ctx.stroke();
+    }
+
+    // Símbolo de Clave de Sol
+    ctx.fillStyle = "#1E293B";
+    ctx.font = `${Math.round(lineGap * 5.2)}px serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("𝄞", 24, bottomLineY - lineGap * 1.85);
+
+    // Etiqueta discreta "Violín"
+    ctx.fillStyle = "#7C3AED";
+    ctx.font = "800 9.5px 'Nunito', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText("VIOLÍN", clefAreaW / 2, staffTop + 6);
+
+    ctx.restore();
   }
 
   const fmtTime = s => {
@@ -1589,6 +2277,7 @@ function initApp() {
     drawBackgroundGrid(beat);
     const activeHands = drawFallingNotes(beat);
     drawPianoKeyboard(activeHands);
+    drawViolinStaff(beat);
     updateChordDisplay(beat);
 
     if (song.loaded) {
