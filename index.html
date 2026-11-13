@@ -605,13 +605,13 @@ function initApp() {
   const PULSOS_POR_ACORDE = 3;
 
   // Punto de corte de respaldo solo si el MIDI de piano viniera en 1 sola pista y 1 canal:
-  // 48 = Do3 (centro del rango A1–E4)
-  const NOTA_DIVISION = 48;
+  // 60 = Do4 (centro del rango A2–B4)
+  const NOTA_DIVISION = 60;
 
   /**
    * DEFINICIÓN MANUAL DE ACORDES (OPCIONAL, POR COMPÁS DE 3 PULSOS):
    * - Si dejas esta lista vacía ([]), la app detecta AUTOMÁTICAMENTE el acorde
-   *   cada 3 pulsos leyendo la nota fundamental del pulso 1 (ej. Re2 - La2 - Re3/Fa3
+   *   cada 3 pulsos leyendo la nota fundamental del pulso 1 (ej. Re3 - La3 - Re4/Fa4
    *   en pulsos 1, 2 y 3 se reconoce como un único acorde "Re menor" desde el pulso 1).
    * - Si el mismo acorde continúa en el siguiente grupo de 3 pulsos, no se repite.
    */
@@ -633,10 +633,10 @@ function initApp() {
   };
 
   /* ============================================================================
-     2. RANGO DEL PIANO: DE A1 (33) A E4 (64)
+     2. RANGO DEL PIANO: DE A2 (45) A B4 (71) SIN CORRECCIÓN FORZADA DE OCTAVA
      ============================================================================ */
-  const MIN_MIDI = 33; // A1 (La 1)
-  const MAX_MIDI = 64; // E4 (Mi 4)
+  const MIN_MIDI = 45; // A2 (La 2)
+  const MAX_MIDI = 71; // B4 (Si 4)
   // Nomenclatura adaptada a la tonalidad (con Sib en lugar de La#)
   const NOTE_NAMES_ES = ["Do", "Do#", "Re", "Mib", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "Sib", "Si"];
   const BLACK_PCS = new Set([1, 3, 6, 8, 10]);
@@ -671,47 +671,6 @@ function initApp() {
     }
   }
 
-  /**
-   * Calcula el desplazamiento óptimo en octavas completas (-24, -12, 0, +12, +24)
-   * para que toda la mano encaje dentro de A1..E4 manteniendo intacto el contorno
-   * melódico (evitando que notas ascendentes como Sol - La - Do# se partan de octava).
-   */
-  function computeBestOctaveShift(rawList) {
-    if (!rawList.length) return 0;
-    const candidates = [0, -12, 12, -24, 24];
-    let bestShift = 0;
-    let bestInRange = -1;
-    let bestPenalty = Infinity;
-
-    for (const shift of candidates) {
-      let inRange = 0;
-      let penalty = 0;
-      for (const n of rawList) {
-        const m = n.midi + shift;
-        if (m >= MIN_MIDI && m <= MAX_MIDI) {
-          inRange++;
-        } else if (m < MIN_MIDI) {
-          penalty += (MIN_MIDI - m);
-        } else {
-          penalty += (m - MAX_MIDI);
-        }
-      }
-      if (inRange > bestInRange || (inRange === bestInRange && penalty < bestPenalty)) {
-        bestInRange = inRange;
-        bestPenalty = penalty;
-        bestShift = shift;
-      }
-    }
-    return bestShift;
-  }
-
-  function mapNoteToVisibleKey(midi, handShift) {
-    let m = midi + handShift;
-    while (m < MIN_MIDI) m += 12;
-    while (m > MAX_MIDI) m -= 12;
-    return m;
-  }
-
   /* ============================================================================
      3. SONIDO REAL DE PIANO ACÚSTICO Y MELODÍA (Tone.js)
      ============================================================================ */
@@ -743,7 +702,7 @@ function initApp() {
   }).connect(pianoFallbackFilter);
   pianoFallbackSynth.volume.value = -4;
 
-  /* Muestreador de Piano Acústico Real (Salamander Grand Piano, incluyendo graves desde A1) */
+  /* Muestreador de Piano Acústico Real (Salamander Grand Piano) */
   let pianoSamplerLoaded = false;
   const pianoSampler = new Tone.Sampler({
     urls: {
@@ -917,7 +876,7 @@ function initApp() {
   /**
    * Construye la línea de tiempo de acordes agrupados de 3 pulsos en 3 pulsos:
    * - En cada bloque de 3 pulsos (pulsos 1, 2 y 3), lee la nota fundamental del
-   *   primer ataque del bloque (ej. Re2 en pulso 1 de "Re2 - La2 - Re3/Fa3").
+   *   primer ataque del bloque (pulso 1).
    * - Todos los 3 pulsos pertenecen a ese mismo acorde.
    * - Solo se registra cuando aparece por primera vez o cambia a un acorde distinto.
    */
@@ -1025,22 +984,19 @@ function initApp() {
 
     const melodyRaw = extractRawNotes(melodyMidi);
 
-    // Ajuste inteligente por octava completa para cada mano dentro de A1..E4
-    const leftShift  = computeBestOctaveShift(leftRaw);
-    const rightShift = computeBestOctaveShift(rightRaw);
-
-    const mapHandNotes = (rawList, hand, shift) => rawList.map(n => ({
+    // Mapeo directo al MIDI real sin forzar desplazamientos de octava
+    const mapHandNotes = (rawList, hand) => rawList.map(n => ({
       midi: n.midi,
-      displayMidi: mapNoteToVisibleKey(n.midi, shift),
+      displayMidi: n.midi,
       hand,
       startBeat: n.startBeatRaw + lead,
       durBeats: n.durBeats,
       vel: n.vel
     }));
 
-    const melodyNotes = mapHandNotes(melodyRaw, "melody", 0);
-    const leftNotes   = mapHandNotes(leftRaw,   "left",   leftShift);
-    const rightNotes  = mapHandNotes(rightRaw,  "right",  rightShift);
+    const melodyNotes = mapHandNotes(melodyRaw, "melody");
+    const leftNotes   = mapHandNotes(leftRaw,   "left");
+    const rightNotes  = mapHandNotes(rightRaw,  "right");
 
     const chords = buildChordTimeline(leftNotes, rightNotes, lead);
 
@@ -1332,7 +1288,7 @@ function initApp() {
   });
 
   /* ============================================================================
-     7. RENDERIZADO SYNTHESIA (CAÍDA DE NOTAS + TECLADO DE A1 A E4)
+     7. RENDERIZADO SYNTHESIA (CAÍDA DE NOTAS + TECLADO DE A2 A B4)
      ============================================================================ */
   const cv = el("cv");
   const ctx = cv.getContext("2d");
@@ -1361,7 +1317,7 @@ function initApp() {
     }
 
     L.fallH = Math.max(80, H - L.keyH);
-    L.whiteW = W / WHITE_KEYS.length; // 19 teclas blancas de A1 a E4
+    L.whiteW = W / WHITE_KEYS.length; // 16 teclas blancas de A2 a B4
     L.blackW = L.whiteW * 0.60;
     L.blackH = L.keyH * 0.62;
 
@@ -1560,7 +1516,7 @@ function initApp() {
   function drawPianoKeyboard(activeHandsByMidi) {
     const topY = L.fallH;
 
-    // 1. 19 teclas blancas (A1 a E4)
+    // 1. 16 teclas blancas (A2 a B4)
     for (const wk of WHITE_KEYS) {
       const hand = activeHandsByMidi.get(wk.midi);
       const isManual = manualPressedMidi === wk.midi;
@@ -1587,7 +1543,7 @@ function initApp() {
       }
     }
 
-    // 2. 13 teclas negras (con Sib en lugar de La#)
+    // 2. 11 teclas negras (con Sib en lugar de La#)
     for (const bk of BLACK_KEYS) {
       const hand = activeHandsByMidi.get(bk.midi);
       const isManual = manualPressedMidi === bk.midi;
