@@ -45,7 +45,6 @@
     font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
-  /* Compactado ligeramente a izquierda y derecha */
   body {
     display: flex;
     flex-direction: column;
@@ -567,15 +566,15 @@
   }
 
   .strum-step-num {
-    transition: fill 0.08s ease, stroke 0.08s ease;
+    transition: fill 0.07s ease, stroke 0.07s ease;
   }
 
   .strum-step-text {
-    transition: fill 0.08s ease;
+    transition: fill 0.07s ease;
   }
 
   .strum-step-arrow {
-    transition: stroke 0.08s ease, fill 0.08s ease;
+    transition: stroke 0.07s ease, fill 0.07s ease;
   }
 
   /* Pulso activo iluminado (1 -> 2 -> 3 -> 1) */
@@ -963,7 +962,7 @@ function initApp() {
   const el = id => document.getElementById(id);
 
   /* ============================================================================
-     1. CONFIGURACIÓN DE ARCHIVOS MIDI Y ACORDES
+     1. CONFIGURACIÓN DE ARCHIVOS MIDI, PULSO Y CAMBIO DE PARTE
      ============================================================================ */
   const MIDI_FILES = {
     melody:     "./midis/melodiaprincipal.mid",
@@ -974,28 +973,24 @@ function initApp() {
     rightAlt:   "./midis/pianoderecha.mid"    // Respaldo opcional si se exportan por separado
   };
 
-  // Los acordes se evalúan en bloques de 3 pulsos (pulsos 1, 2 y 3 = mismo acorde)
+  // Cada grupo de rasgueo tiene 3 pulsos (1 - 2 - 3)
   const PULSOS_POR_ACORDE = 3;
 
-  // Segundo aproximado en el que inicia la segunda parte (acordes fijos de golpe)
-  const SEGUNDO_INICIO_PARTE_2 = 36;
+  // CONFIGURACIÓN DEL CAMBIO A LA 2ª PARTE:
+  // - Puedes fijar el número exacto de compás de MuseScore en COMPAS_INICIO_PARTE_2
+  //   (por ejemplo: const COMPAS_INICIO_PARTE_2 = 21;).
+  // - Si lo dejas en null, lo detecta automáticamente cerca de SEGUNDO_INICIO_PARTE_2 (36s).
+  const COMPAS_INICIO_PARTE_2 = null;
+  const SEGUNDO_INICIO_PARTE_2 = 36.0;
 
-  // Punto de corte de respaldo solo si el MIDI de piano viniera en 1 sola pista y 1 canal:
-  // 60 = Do4 (centro del rango A2–B4)
+  // Punto de corte de respaldo solo si el MIDI de piano viniera en 1 sola pista y 1 canal
   const NOTA_DIVISION = 60;
 
   /**
    * DEFINICIÓN MANUAL DE ACORDES (OPCIONAL, POR COMPÁS DE 3 PULSOS):
-   * - Si dejas esta lista vacía ([]), la app detecta AUTOMÁTICAMENTE el acorde
-   *   cada 3 pulsos leyendo la nota fundamental del pulso 1.
-   * - Si el mismo acorde continúa en el siguiente grupo de 3 pulsos, no se repite.
    */
   const ACORDES_MANUALES = [
     // { compas: 1, pulso: 1, acorde: "Re menor" },
-    // { compas: 2, pulso: 1, acorde: "Fa Mayor" },
-    // { compas: 3, pulso: 1, acorde: "Sol menor" },
-    // { compas: 4, pulso: 1, acorde: "Do Mayor" },
-    // { compas: 5, pulso: 1, acorde: "La 7" },
   ];
 
   /* Mapeo por nota fundamental (clase de altura MIDI 0..11) */
@@ -1118,7 +1113,7 @@ function initApp() {
   renderUkuleleDiagram("Re menor");
 
   /* ============================================================================
-     2. RANGO DEL PIANO: DE A2 (45) A B4 (71) SIN CORRECCIÓN FORZADA DE OCTAVA
+     2. RANGO DEL PIANO: DE A2 (45) A B4 (71)
      ============================================================================ */
   const MIN_MIDI = 45; // A2 (La 2)
   const MAX_MIDI = 71; // B4 (Si 4)
@@ -1161,17 +1156,14 @@ function initApp() {
   let violinMode = false;
   let ukuleleMode = false;
 
-  /* Limitador maestro suave para garantizar cero saturación */
   const masterLimiter = new Tone.Limiter(-1).toDestination();
 
-  /* Reverb sutil de sala para calidez acústica */
   const roomReverb = new Tone.Reverb({
     decay: 1.4,
     preDelay: 0.01,
     wet: 0.16
   }).connect(masterLimiter);
 
-  /* Piano de respaldo acústico */
   const pianoFallbackFilter = new Tone.Filter({
     type: "lowpass",
     frequency: 2600,
@@ -1191,7 +1183,6 @@ function initApp() {
     }
   }).connect(pianoFallbackFilter);
 
-  /* Muestreador de Piano Acústico Real (Salamander Grand Piano) */
   let pianoSamplerLoaded = false;
   const pianoSampler = new Tone.Sampler({
     urls: {
@@ -1234,14 +1225,12 @@ function initApp() {
     try { pianoFallbackSynth.releaseAll(); } catch (e) {}
   }
 
-  /* Melodía principal / Voz de fondo */
   const vibrato = new Tone.Vibrato(4.5, 0.05).connect(roomReverb);
   const melodySynth = new Tone.PolySynth(Tone.Synth, {
     oscillator: { type: "custom", partials: [1, 0.22, 0.05] },
     envelope: { attack: 0.04, decay: 0.12, sustain: 0.80, release: 0.18 }
   }).connect(vibrato);
 
-  /* Violín 1 y Violín 2 (suaves, sin saturación, <= 0 dB) */
   const violinFilter = new Tone.Filter({
     type: "lowpass",
     frequency: 3000,
@@ -1281,9 +1270,6 @@ function initApp() {
     try { violin2Synth.releaseAll(); } catch (e) {}
   }
 
-  /* Balance de volúmenes:
-     - Con violín activo: piano un poco más presente (-5 dB), voz baja (-19 dB),
-       violín más suave y limpio sin pasar nunca de 0 dB (-6 dB y -3 dB). */
   function updateAudioMix() {
     if (violinMode) {
       pianoSampler.volume.value = -5;
@@ -1303,7 +1289,6 @@ function initApp() {
 
   updateAudioMix();
 
-  /* Metrónomo suave solo para el compás de cuenta previa */
   const clickSynth = new Tone.MembraneSynth({
     pitchDecay: 0.008,
     octaves: 2,
@@ -1312,7 +1297,7 @@ function initApp() {
   clickSynth.volume.value = -13;
 
   /* ============================================================================
-     4. CARGA DE MIDIS, SEPARACIÓN DE MANOS, ACORDES Y DETECCIÓN DE PARTE 2
+     4. CARGA DE MIDIS Y SINCRONIZACIÓN EXACTA CON EL PULSO DEL PIANO
      ============================================================================ */
   let song = {
     leftNotes: [],
@@ -1321,6 +1306,9 @@ function initApp() {
     violinNotes: [],
     hasViolinMidi: false,
     chords: [],
+    pulseStepBeats: 1,
+    pulseAnchorBeat: 3,
+    pianoAttacks: [],
     part2StartBeat: 63,
     bpm: 100,
     num: 3,
@@ -1445,67 +1433,136 @@ function initApp() {
   }
 
   /**
-   * Detecta el inicio exacto de la 2ª parte (~segundo 36), donde el piano
-   * pasa a tocar acordes fijos y de golpe (ej. do, do-mi-sol // fa, do-fa-la).
+   * Agrupa las notas simultáneas del piano en ataques rítmicos reales
+   * (ej. ataque 1: Re, ataque 2: La, ataque 3: Re-Fa) y mide la subdivisión
+   * real del movimiento del piano para que el ukelele marque exactamente 1 - 2 - 3.
    */
-  function detectPart2StartBeat(leftNotes, rightNotes, bpm, leadBeats) {
-    const spb = 60 / bpm;
-    const targetBeat = SEGUNDO_INICIO_PARTE_2 / spb;
-    const approxMeasureIdx = Math.max(1, Math.round((targetBeat - leadBeats) / PULSOS_POR_ACORDE));
-    const fallbackBeat = leadBeats + approxMeasureIdx * PULSOS_POR_ACORDE;
-
+  function analyzePianoRhythm(leftNotes, rightNotes, tsDenom, leadBeats) {
     const pianoAll = [...leftNotes, ...rightNotes].sort((a, b) => a.startBeat - b.startBeat);
-    if (!pianoAll.length) return fallbackBeat;
+    const attacks = [];
 
-    // Buscar en una ventana cercana al segundo 36 (entre 31s y 41s) el primer compás
-    // donde aparezcan ataques simultáneos de acordes (>= 2 notas al mismo tiempo)
-    const minBeatSearch = 31 / spb;
-    const maxBeatSearch = 41 / spb;
-
-    for (let i = 0; i < pianoAll.length; i++) {
-      const b = pianoAll[i].startBeat;
-      if (b < minBeatSearch) continue;
-      if (b > maxBeatSearch) break;
-
-      let simultaneousCount = 1;
-      for (let j = i + 1; j < pianoAll.length; j++) {
-        if (Math.abs(pianoAll[j].startBeat - b) < 0.05) {
-          simultaneousCount++;
-        } else {
-          break;
-        }
-      }
-
-      if (simultaneousCount >= 2) {
-        const relBeat = Math.max(0, b - leadBeats);
-        const measureIdx = Math.floor((relBeat + 0.1) / PULSOS_POR_ACORDE);
-        return leadBeats + measureIdx * PULSOS_POR_ACORDE;
+    for (const n of pianoAll) {
+      const last = attacks[attacks.length - 1];
+      if (last && Math.abs(n.startBeat - last.beat) <= 0.055) {
+        last.notes.push(n);
+        if (n.midi < last.lowestMidi) last.lowestMidi = n.midi;
+      } else {
+        attacks.push({
+          beat: n.startBeat,
+          notes: [n],
+          lowestMidi: n.midi
+        });
       }
     }
 
-    return fallbackBeat;
+    if (!attacks.length) {
+      const defaultStep = tsDenom === 8 ? 0.5 : 1.0;
+      return {
+        attacks: [],
+        pulseStepBeats: defaultStep,
+        pulseAnchorBeat: leadBeats
+      };
+    }
+
+    // Medir la distancia más frecuente entre ataques consecutivos del arpegio inicial
+    const diffs = [];
+    const limit = Math.min(attacks.length - 1, 36);
+    for (let i = 0; i < limit; i++) {
+      const d = attacks[i + 1].beat - attacks[i].beat;
+      if (d >= 0.22 && d <= 1.35) {
+        diffs.push(d);
+      }
+    }
+
+    let pulseStepBeats = tsDenom === 8 ? 0.5 : 1.0;
+    if (diffs.length >= 3) {
+      diffs.sort((a, b) => a - b);
+      const medianDiff = diffs[Math.floor(diffs.length / 2)];
+      // Encajar a figura musical estándar (corchea = 0.5 o negra = 1.0 negra MIDI)
+      if (medianDiff < 0.72) {
+        pulseStepBeats = 0.5;
+      } else {
+        pulseStepBeats = 1.0;
+      }
+    }
+
+    const pulseAnchorBeat = attacks[0].beat;
+    return { attacks, pulseStepBeats, pulseAnchorBeat };
   }
 
   /**
-   * Construye la línea de tiempo de acordes agrupados de 3 pulsos en 3 pulsos:
-   * - Funciona tanto en la 1ª parte (arpegiada) como en la 2ª parte (bajo + acordes
-   *   fijos de golpe: do + do-mi-sol, fa + do-fa-la, etc.), leyendo la fundamental
-   *   del primer pulso de cada bloque de 3 pulsos.
+   * Detecta el inicio de la 2ª parte alrededor del segundo 36:
+   * - Distingue la 1ª parte (donde el 3er pulso tiene notas y el 2º pulso es una nota suelta)
+   *   de la 2ª parte (donde el piano da acordes fijos de golpe en los pulsos 1 y 2,
+   *   como Do -> Do-Mi-Sol, dejando el pulso 3 en silencio/ligado).
    */
-  function buildChordTimeline(leftNotes, rightNotes, leadBeats) {
+  function detectPart2StartBeat(attacks, pulseStepBeats, pulseAnchorBeat, bpm) {
+    const spb = 60 / bpm;
+    const measureBeats = PULSOS_POR_ACORDE * pulseStepBeats;
+
+    if (typeof COMPAS_INICIO_PARTE_2 === "number" && COMPAS_INICIO_PARTE_2 >= 1) {
+      return pulseAnchorBeat + (COMPAS_INICIO_PARTE_2 - 1) * measureBeats;
+    }
+
+    const targetBeat = SEGUNDO_INICIO_PARTE_2 / spb;
+    const approxIdx = Math.max(1, Math.round((targetBeat - pulseAnchorBeat) / measureBeats));
+    const fallbackBeat = pulseAnchorBeat + approxIdx * measureBeats;
+
+    if (!attacks.length) return fallbackBeat;
+
+    // Buscar específicamente alrededor del segundo 36 (entre 34.0s y 39.5s)
+    // el compás donde el piano cambia al patrón de 2ª parte:
+    // pulso 1 = bajo (1 nota), pulso 2 = acorde en bloque (>= 3 notas) y/o pulso 3 sin ataque
+    const minBeatSearch = 34.0 / spb;
+    const maxBeatSearch = 39.5 / spb;
+    const startIdx = Math.max(1, Math.floor((minBeatSearch - pulseAnchorBeat) / measureBeats));
+    const endIdx   = Math.ceil((maxBeatSearch - pulseAnchorBeat) / measureBeats);
+
+    let bestCandidate = null;
+    let bestDistance = Infinity;
+
+    for (let idx = startIdx; idx <= endIdx; idx++) {
+      const mStart = pulseAnchorBeat + idx * measureBeats;
+      if (mStart < minBeatSearch || mStart > maxBeatSearch) continue;
+
+      const p1 = attacks.find(a => Math.abs(a.beat - mStart) <= pulseStepBeats * 0.35);
+      const p2 = attacks.find(a => Math.abs(a.beat - (mStart + pulseStepBeats)) <= pulseStepBeats * 0.35);
+      const p3 = attacks.find(a => Math.abs(a.beat - (mStart + 2 * pulseStepBeats)) <= pulseStepBeats * 0.35);
+
+      const isBlockChordOn2 = p1 && p2 && p2.notes.length >= 3;
+      const isRestOn3 = p1 && p2 && !p3;
+
+      if (isBlockChordOn2 || isRestOn3) {
+        const dist = Math.abs(mStart - targetBeat);
+        if (dist < bestDistance) {
+          bestDistance = dist;
+          bestCandidate = p1 ? p1.beat : mStart;
+        }
+      }
+    }
+
+    return bestCandidate !== null ? bestCandidate : fallbackBeat;
+  }
+
+  /**
+   * Construye la línea de tiempo de acordes agrupados en bloques de 3 pulsos reales del piano
+   */
+  function buildChordTimeline(attacks, pulseStepBeats, pulseAnchorBeat) {
+    const measureBeats = PULSOS_POR_ACORDE * pulseStepBeats;
+
     if (ACORDES_MANUALES.length > 0) {
       const timeline = [];
       let lastChordName = "";
       const sortedManual = [...ACORDES_MANUALES].sort((a, b) => {
-        const beatA = (Math.max(1, a.compas || 1) - 1) * PULSOS_POR_ACORDE + (Math.max(1, a.pulso || 1) - 1);
-        const beatB = (Math.max(1, b.compas || 1) - 1) * PULSOS_POR_ACORDE + (Math.max(1, b.pulso || 1) - 1);
+        const beatA = (Math.max(1, a.compas || 1) - 1) * measureBeats + (Math.max(1, a.pulso || 1) - 1) * pulseStepBeats;
+        const beatB = (Math.max(1, b.compas || 1) - 1) * measureBeats + (Math.max(1, b.pulso || 1) - 1) * pulseStepBeats;
         return beatA - beatB;
       });
 
       for (const item of sortedManual) {
         const compas = Math.max(1, item.compas || 1);
         const pulso = Math.max(1, item.pulso || 1);
-        const beat = leadBeats + (compas - 1) * PULSOS_POR_ACORDE + (pulso - 1);
+        const beat = pulseAnchorBeat + (compas - 1) * measureBeats + (pulso - 1) * pulseStepBeats;
         const nombre = item.acorde.trim();
         if (nombre && nombre !== lastChordName) {
           const foundEntry = Object.values(ACORDES_POR_FUNDAMENTAL).find(
@@ -1522,26 +1579,19 @@ function initApp() {
       return timeline;
     }
 
-    // Combinar ambas manos para leer la nota más grave en el pulso 1 de cada compás de 3 pulsos
-    const combinedPiano = [...leftNotes, ...rightNotes].sort((a, b) => a.startBeat - b.startBeat);
-    if (!combinedPiano.length) return [];
+    if (!attacks.length) return [];
 
     const blocks = new Map();
-    for (const n of combinedPiano) {
-      const relBeat = Math.max(0, n.startBeat - leadBeats);
-      const blockIdx = Math.floor((relBeat + 0.05) / PULSOS_POR_ACORDE);
+    for (const att of attacks) {
+      const relBeat = Math.max(0, att.beat - pulseAnchorBeat);
+      const blockIdx = Math.floor((relBeat + pulseStepBeats * 0.25) / measureBeats);
 
       if (!blocks.has(blockIdx)) {
         blocks.set(blockIdx, {
           blockIdx,
-          firstBeat: n.startBeat,
-          lowestMidi: n.midi
+          firstBeat: att.beat,
+          lowestMidi: att.lowestMidi
         });
-      } else {
-        const blk = blocks.get(blockIdx);
-        if (Math.abs(n.startBeat - blk.firstBeat) < 0.08) {
-          if (n.midi < blk.lowestMidi) blk.lowestMidi = n.midi;
-        }
       }
     }
 
@@ -1572,13 +1622,14 @@ function initApp() {
     const ppq = 480;
     T.PPQ = ppq;
 
-    const refMidi = melodyMidi || pianoMidi || violinMidi || rightAltMidi || leftAltMidi;
+    const refMidi = pianoMidi || melodyMidi || violinMidi || rightAltMidi || leftAltMidi;
     const bpm = (refMidi && refMidi.header.tempos.length) ? refMidi.header.tempos[0].bpm : 100;
-    const rawNum = (refMidi && refMidi.header.timeSignatures.length)
-      ? refMidi.header.timeSignatures[0].timeSignature[0]
-      : PULSOS_POR_ACORDE;
-    const num = Math.min(Math.max(rawNum || PULSOS_POR_ACORDE, 2), 6);
-    const lead = PULSOS_POR_ACORDE;
+    const ts = (refMidi && refMidi.header.timeSignatures.length)
+      ? refMidi.header.timeSignatures[0].timeSignature
+      : [3, 4];
+    const num = ts[0] || 3;
+    const denom = ts[1] || 4;
+    const lead = 3;
 
     let leftRaw = [];
     let rightRaw = [];
@@ -1610,8 +1661,15 @@ function initApp() {
     const rightNotes  = mapHandNotes(rightRaw,  "right");
     const violinNotes = mapHandNotes(violinRaw, "violin");
 
-    const chords = buildChordTimeline(leftNotes, rightNotes, lead);
-    const part2StartBeat = detectPart2StartBeat(leftNotes, rightNotes, bpm, lead);
+    const { attacks, pulseStepBeats, pulseAnchorBeat } = analyzePianoRhythm(
+      leftNotes,
+      rightNotes,
+      denom,
+      lead
+    );
+
+    const chords = buildChordTimeline(attacks, pulseStepBeats, pulseAnchorBeat);
+    const part2StartBeat = detectPart2StartBeat(attacks, pulseStepBeats, pulseAnchorBeat, bpm);
 
     const allNotes = [...melodyNotes, ...leftNotes, ...rightNotes, ...violinNotes];
     const maxBeat = allNotes.reduce((acc, n) => Math.max(acc, n.startBeat + n.durBeats), lead + 3);
@@ -1623,6 +1681,9 @@ function initApp() {
       violinNotes,
       hasViolinMidi: violinNotes.length > 0,
       chords,
+      pulseStepBeats,
+      pulseAnchorBeat,
+      pianoAttacks: attacks,
       part2StartBeat,
       bpm,
       num,
@@ -1631,7 +1692,6 @@ function initApp() {
       loaded: allNotes.length > 0
     };
 
-    // Melodía principal / Voz
     melodyNotes.forEach(n => {
       const startTicks = Math.round(n.startBeat * ppq);
       const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.94));
@@ -1641,7 +1701,6 @@ function initApp() {
       }, startTicks + "i");
     });
 
-    // Piano acústico (mano izquierda y mano derecha)
     [...leftNotes, ...rightNotes].forEach(n => {
       const startTicks = Math.round(n.startBeat * ppq);
       const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.94));
@@ -1651,7 +1710,6 @@ function initApp() {
       }, startTicks + "i");
     });
 
-    // Violín (suave y sin saturar)
     violinNotes.forEach(n => {
       const startTicks = Math.round(n.startBeat * ppq);
       const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.96));
@@ -1667,7 +1725,6 @@ function initApp() {
       }, startTicks + "i");
     });
 
-    // Clic de cuenta previa solo durante el primer compás de 3 pulsos (lead)
     T.scheduleRepeat(time => {
       const b = Math.round(T.getTicksAtTime(time) / ppq);
       if (b < lead) {
@@ -1723,19 +1780,26 @@ function initApp() {
   }
 
   /* ============================================================================
-     5. BARRA DE ACORDES + ANIMACIÓN DE PULSO 1-2-3 EN RASGUEO DE UKELELE
+     5. BARRA DE ACORDES + PULSO DE UKELELE SINCRONIZADO CON EL PIANO (1 - 2 - 3)
      ============================================================================ */
   let lastRenderedChord = "";
   let lastStrumState = "";
 
   function updateStrummingAnimation(beat, isPlaying) {
-    const isPart2 = beat >= (song.part2StartBeat - 0.04);
+    const stepBeats = song.pulseStepBeats || 1;
+    const anchorBeat = song.pulseAnchorBeat ?? song.lead;
+    const isPart2 = beat >= (song.part2StartBeat - stepBeats * 0.12);
     const activePartNum = isPart2 ? 2 : 1;
 
-    // Pulso cíclico 1 -> 2 -> 3 -> 1 sincronizado con el compás de 3 tiempos
-    const pulseNum = isPlaying ? (Math.floor(((beat % PULSOS_POR_ACORDE) + PULSOS_POR_ACORDE) % PULSOS_POR_ACORDE) + 1) : 0;
-    const stateKey = `${activePartNum}:${pulseNum}`;
+    let pulseNum = 0;
+    if (isPlaying) {
+      // Sincronizado con el movimiento real del piano (ej. Re = 1, La = 2, Re-Fa = 3)
+      const relSteps = (beat - anchorBeat + stepBeats * 0.08) / stepBeats;
+      const stepIdx = ((Math.floor(relSteps) % PULSOS_POR_ACORDE) + PULSOS_POR_ACORDE) % PULSOS_POR_ACORDE;
+      pulseNum = stepIdx + 1;
+    }
 
+    const stateKey = `${activePartNum}:${pulseNum}`;
     if (lastStrumState === stateKey) return;
     lastStrumState = stateKey;
 
@@ -1857,7 +1921,6 @@ function initApp() {
 
   el("stop").addEventListener("click", resetPlayback);
 
-  /* Botón opcional de Ukelele (igual que el de Violín) */
   const ukeBtn = el("toggle-ukulele");
   const ukePanel = el("ukulele-panel");
   ukeBtn.addEventListener("click", () => {
@@ -1867,7 +1930,6 @@ function initApp() {
     requestAnimationFrame(resize);
   });
 
-  /* Botón opcional de pentagrama de violín */
   const violinBtn = el("toggle-violin");
   violinBtn.addEventListener("click", async () => {
     await Tone.start();
@@ -1884,7 +1946,6 @@ function initApp() {
     Tone.Transport.bpm.value = song.bpm * speed;
   });
 
-  /* Colapsar/mostrar ajustes secundarios en móvil vertical */
   const controlsBar = el("controls-bar");
   const toggleExtraBtn = el("toggle-extra");
   toggleExtraBtn.addEventListener("click", () => {
@@ -1894,7 +1955,6 @@ function initApp() {
     requestAnimationFrame(resize);
   });
 
-  /* Pantalla completa híbrida (PC/Android nativo + modo estudio en iOS) */
   function updateFsButton(active) {
     el("fs").innerHTML = active
       ? '<span aria-hidden="true">✕</span><span class="fs-label">Salir</span>'
@@ -1948,7 +2008,6 @@ function initApp() {
     }
   });
 
-  /* Deslizante de avanzar y retroceder en la canción */
   const seek = el("seek");
   let dragging = false, wasPlaying = false, lastSeek = 0;
 
@@ -2033,7 +2092,7 @@ function initApp() {
     }
 
     L.fallH = Math.max(70, H - L.keyH - L.staffH);
-    L.whiteW = W / WHITE_KEYS.length; // 16 teclas blancas de A2 a B4
+    L.whiteW = W / WHITE_KEYS.length;
     L.blackW = L.whiteW * 0.60;
     L.blackH = L.keyH * 0.62;
 
@@ -2130,10 +2189,14 @@ function initApp() {
       ctx.stroke();
     }
 
-    const m = PULSOS_POR_ACORDE;
+    const measureBeats = PULSOS_POR_ACORDE * (song.pulseStepBeats || 1);
+    const anchor = song.pulseAnchorBeat ?? song.lead;
     const maxVisibleBeat = beat + L.fallH / L.pxPerBeat + 1;
-    let b = Math.max(0, Math.floor(beat / m) * m);
-    for (; b <= maxVisibleBeat; b += m) {
+    const startIdx = Math.floor((beat - anchor) / measureBeats);
+    for (let idx = startIdx; ; idx++) {
+      const b = anchor + idx * measureBeats;
+      if (b > maxVisibleBeat) break;
+      if (b < 0) continue;
       const y = L.fallH - (b - beat) * L.pxPerBeat;
       if (y < 0 || y > L.fallH) continue;
       ctx.strokeStyle = "rgba(148, 163, 184, 0.18)";
@@ -2349,11 +2412,15 @@ function initApp() {
     const playheadX = Math.min(92, Math.max(72, W * 0.12));
     const staffPxPerBeat = Math.max(54, Math.min(96, W / 10.5));
 
-    const m = PULSOS_POR_ACORDE;
+    const measureBeats = PULSOS_POR_ACORDE * (song.pulseStepBeats || 1);
+    const anchor = song.pulseAnchorBeat ?? song.lead;
     const minBeatVisible = beat - (playheadX - clefAreaW) / staffPxPerBeat - 1;
     const maxBeatVisible = beat + (W - playheadX) / staffPxPerBeat + 2;
-    let b = Math.max(0, Math.floor(minBeatVisible / m) * m);
-    for (; b <= maxBeatVisible; b += m) {
+    const startIdx = Math.floor((minBeatVisible - anchor) / measureBeats);
+
+    for (let idx = startIdx; ; idx++) {
+      const b = anchor + idx * measureBeats;
+      if (b > maxBeatVisible) break;
       const x = playheadX + (b - beat) * staffPxPerBeat;
       if (x < clefAreaW) continue;
       ctx.strokeStyle = "#CBD5E1";
@@ -2363,7 +2430,7 @@ function initApp() {
       ctx.lineTo(x, bottomLineY);
       ctx.stroke();
 
-      const measureNum = Math.round(b / m);
+      const measureNum = idx + 1;
       if (measureNum >= 1) {
         ctx.fillStyle = "#94A3B8";
         ctx.font = "700 10px 'Nunito', sans-serif";
