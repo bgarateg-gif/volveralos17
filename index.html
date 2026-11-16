@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Piano Studio">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F1F5F9">
 <title>Piano Synthesia – Práctica a Dos Manos, Ukelele y Violín</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,13 +41,31 @@
 
   html, body {
     margin: 0;
-    height: 100%;
+    padding: 0;
     background: var(--bg);
     color: var(--fg);
     font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
+  /* En escritorio mantenemos altura fija de ventana */
   body {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* En navegadores móviles (Safari / Chrome iOS), damos un margen extra de scroll
+     al documento para que al deslizar hacia arriba el navegador oculte su barra
+     de direcciones y pestañas, mientras .app-shell queda fijada arriba. */
+  @media (hover: none) and (pointer: coarse) {
+    body:not(.is-standalone) {
+      min-height: calc(100vh + 84px);
+      min-height: calc(100lvh + 40px);
+    }
+  }
+
+  .app-shell {
+    position: sticky;
+    top: 0;
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -53,27 +73,20 @@
     max-width: 1180px;
     width: 100%;
     margin: 0 auto;
-    padding: 10px 26px;
-    gap: 10px;
+    padding: max(8px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+    gap: 8px;
     overflow: hidden;
   }
 
-  /* Modo pantalla completa (nativo + modo estudio expandido para iOS/Android) */
-  body.is-fullscreen {
-    position: fixed !important;
-    inset: 0 !important;
+  /* Modo pantalla completa / estudio expandido */
+  body.is-fullscreen .app-shell {
     max-width: none !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
-    z-index: 999999 !important;
-    background: var(--bg) !important;
-    padding: max(6px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left)) !important;
-    gap: 6px !important;
+    padding: max(4px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)) !important;
+    gap: 5px !important;
   }
 
   body.is-fullscreen .controls {
-    padding: 5px 10px !important;
+    padding: 4px 10px !important;
     gap: 6px 10px !important;
     border-radius: 12px !important;
   }
@@ -98,9 +111,9 @@
   body.is-fullscreen #toggle-ukulele,
   body.is-fullscreen #toggle-violin,
   body.is-fullscreen #fs {
-    min-height: 32px !important;
-    padding: 4px 10px !important;
-    font-size: 13px !important;
+    min-height: 30px !important;
+    padding: 3px 9px !important;
+    font-size: 12.5px !important;
   }
 
   .card {
@@ -116,7 +129,7 @@
     flex-wrap: wrap;
     gap: 8px 10px;
     align-items: center;
-    padding: 9px 14px;
+    padding: 8px 14px;
     flex-shrink: 0;
   }
 
@@ -195,7 +208,7 @@
     font: inherit;
     font-size: 13.5px;
     font-weight: 700;
-    min-height: 35px;
+    min-height: 34px;
     padding: 5px 11px;
     border-radius: 10px;
     cursor: pointer;
@@ -327,11 +340,11 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 7px 16px;
+    padding: 6px 16px;
     background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    min-height: 48px;
+    min-height: 44px;
   }
 
   .chord-left {
@@ -362,7 +375,7 @@
   }
 
   #chord-current {
-    font-size: 23px;
+    font-size: 22px;
     font-weight: 900;
     color: var(--primary);
     letter-spacing: -0.02em;
@@ -611,18 +624,18 @@
     height: 100%;
     display: block;
     background: #0F172A;
-    touch-action: none;
+    touch-action: pan-y;
   }
 
   /* ============ Adaptación Móvil Vertical (Portrait) ============ */
   @media (max-width: 768px) {
-    body {
-      padding: 6px 10px;
+    .app-shell {
+      padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
       gap: 6px;
     }
 
     .controls {
-      padding: 8px 10px;
+      padding: 7px 10px;
       gap: 6px 8px;
       border-radius: 14px;
     }
@@ -676,8 +689,8 @@
     }
 
     .chord-bar {
-      padding: 6px 10px;
-      min-height: 42px;
+      padding: 5px 10px;
+      min-height: 40px;
       gap: 6px;
     }
 
@@ -712,8 +725,8 @@
 
   /* ============ Adaptación Móvil Horizontal (Landscape) ============ */
   @media (max-height: 520px) and (orientation: landscape) {
-    body {
-      padding: 4px 10px;
+    .app-shell {
+      padding: max(4px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
       gap: 4px;
     }
 
@@ -734,8 +747,8 @@
     }
 
     button {
-      min-height: 30px;
-      font-size: 12.5px;
+      min-height: 28px;
+      font-size: 12px;
       padding: 2px 8px;
       border-radius: 8px;
     }
@@ -747,7 +760,7 @@
 
     .speed-group {
       flex: 1 1 90px;
-      max-width: 140px;
+      max-width: 135px;
     }
 
     .seek-group {
@@ -755,12 +768,12 @@
     }
 
     #time {
-      font-size: 11.5px;
+      font-size: 11px;
       min-width: 7ch;
     }
 
     input[type=range] {
-      height: 20px;
+      height: 18px;
       min-width: 45px;
     }
 
@@ -773,13 +786,22 @@
     }
 
     .chord-bar {
-      padding: 3px 12px;
-      min-height: 32px;
+      padding: 2px 12px;
+      min-height: 28px;
+    }
+
+    .chord-tag {
+      display: none;
     }
 
     #chord-current {
-      font-size: 15px;
-      padding: 1px 9px;
+      font-size: 14.5px;
+      padding: 1px 8px;
+    }
+
+    #chord-root {
+      font-size: 11px;
+      padding: 1px 7px;
     }
 
     .chord-right {
@@ -787,9 +809,10 @@
     }
 
     .ukulele-box {
-      width: 132px;
-      padding: 4px 5px;
-      gap: 3px;
+      width: 148px;
+      padding: 3px 5px;
+      gap: 2px;
+      justify-content: flex-start;
     }
 
     .uke-header {
@@ -797,163 +820,173 @@
     }
 
     .uke-chord-title {
-      font-size: 12.5px;
+      font-size: 12px;
     }
 
     .uke-diagram-wrap {
-      max-width: 92px;
+      max-width: 74px;
       padding: 2px;
     }
 
     .uke-frets-pill {
-      font-size: 10px;
-      padding: 1px 5px;
+      font-size: 9.5px;
+      padding: 0 5px;
+    }
+
+    .uke-strum-section {
+      gap: 3px;
+      margin-top: 1px;
     }
 
     .strum-card {
-      padding: 2px 4px 3px;
+      padding: 2px 4px;
+      border-radius: 7px;
     }
 
     .strum-card-head {
-      font-size: 8.5px;
+      font-size: 8px;
+      margin-bottom: 1px;
+    }
+
+    .strum-grid-box {
+      padding: 1px 2px;
     }
   }
 </style>
 </head>
 <body>
 
-<div class="controls card" id="controls-bar">
-  <div class="group transport-group">
-    <button id="play"><span aria-hidden="true">▶</span> Iniciar</button>
-    <button id="stop" class="btn-sec" title="Reiniciar">Reiniciar</button>
-    <button id="toggle-extra" class="btn-sec" type="button" aria-expanded="true">Ajustes ▴</button>
+<!-- Elemento de audio silencioso para que Web Audio suene en iPhone incluso con el interruptor en modo Silencio -->
+<audio id="ios-silence-bypass" playsinline loop preload="auto" src="data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA"></audio>
+
+<div class="app-shell">
+  <div class="controls card" id="controls-bar">
+    <div class="group transport-group">
+      <button id="play"><span aria-hidden="true">▶</span> Iniciar</button>
+      <button id="stop" class="btn-sec" title="Reiniciar">Reiniciar</button>
+      <button id="toggle-extra" class="btn-sec" type="button" aria-expanded="true">Ajustes ▴</button>
+    </div>
+
+    <div class="group speed-group">
+      <label class="lbl" for="speed">Velocidad</label>
+      <input type="range" id="speed" min="50" max="200" step="5" value="100" aria-label="Velocidad">
+      <output id="speedv" for="speed">100%</output>
+    </div>
+
+    <div class="group legend-group" aria-label="Código de colores por mano">
+      <span class="hand-badge"><span class="swatch lh"></span>Mano Izq.</span>
+      <span class="hand-badge"><span class="swatch rh"></span>Mano Der.</span>
+    </div>
+
+    <div class="group seek-group">
+      <span id="time">0:00 / 0:00</span>
+      <input type="range" id="seek" min="0" max="1" step="any" value="0" aria-label="Posición en la canción">
+    </div>
+
+    <div class="actions-right">
+      <button id="toggle-ukulele" type="button" aria-pressed="false" title="Mostrar acordes y rasgueo en ukelele">
+        <span aria-hidden="true">🎸</span><span>Ukelele</span>
+      </button>
+      <button id="toggle-violin" type="button" aria-pressed="false" title="Mostrar pentagrama de violín y destacar violín 2">
+        <span aria-hidden="true">🎻</span><span>Violín</span>
+      </button>
+      <button id="fs" class="btn-sec" type="button" title="Expandir área de estudio">
+        <span aria-hidden="true">⛶</span><span class="fs-label">Expandir</span>
+      </button>
+    </div>
   </div>
 
-  <div class="group speed-group">
-    <label class="lbl" for="speed">Velocidad</label>
-    <input type="range" id="speed" min="50" max="200" step="5" value="100" aria-label="Velocidad">
-    <output id="speedv" for="speed">100%</output>
-  </div>
+  <section class="stage-card card">
+    <header class="chord-bar" aria-live="polite">
+      <div class="chord-left">
+        <span class="chord-tag">Acorde actual</span>
+      </div>
+      <div class="chord-center">
+        <span id="chord-current" class="is-empty">Cargando MIDIs…</span>
+        <span id="chord-root"></span>
+      </div>
+      <div class="chord-right">
+        <span>Siguiente:</span>
+        <span id="chord-next">—</span>
+      </div>
+    </header>
 
-  <div class="group legend-group" aria-label="Código de colores por mano">
-    <span class="hand-badge"><span class="swatch lh"></span>Mano Izq.</span>
-    <span class="hand-badge"><span class="swatch rh"></span>Mano Der.</span>
-  </div>
+    <div class="stage-body">
+      <aside class="ukulele-box is-hidden" id="ukulele-panel" aria-label="Posición y rasgueo en ukelele">
+        <div class="uke-top-info">
+          <span class="uke-header">Ukelele</span>
+          <div class="uke-chord-title" id="uke-chord-name">Re menor</div>
+        </div>
 
-  <div class="group seek-group">
-    <span id="time">0:00 / 0:00</span>
-    <input type="range" id="seek" min="0" max="1" step="any" value="0" aria-label="Posición en la canción">
-  </div>
+        <div class="uke-diagram-wrap" id="uke-diagram"></div>
+        <div class="uke-frets-pill" id="uke-frets-text">2 · 2 · 1 · 0</div>
 
-  <div class="actions-right">
-    <button id="toggle-ukulele" type="button" aria-pressed="false" title="Mostrar acordes y rasgueo en ukelele">
-      <span aria-hidden="true">🎸</span><span>Ukelele</span>
-    </button>
-    <button id="toggle-violin" type="button" aria-pressed="false" title="Mostrar pentagrama de violín y destacar violín 2">
-      <span aria-hidden="true">🎻</span><span>Violín</span>
-    </button>
-    <button id="fs" class="btn-sec" type="button" title="Pantalla completa">
-      <span aria-hidden="true">⛶</span><span class="fs-label">Pantalla completa</span>
-    </button>
-  </div>
+        <div class="uke-strum-section" aria-label="Patrones de rasgueo en 3 pulsos">
+          <!-- Cuadrícula superior: Primera parte (1: ↓✕ apagado, 2: ↓ abajo, 3: ↑ arriba) -->
+          <div class="strum-card is-active-part" id="strum-part-1">
+            <div class="strum-card-head">
+              <span>1ª Parte</span>
+              <span>↓✕ · ↓ · ↑</span>
+            </div>
+            <div class="strum-grid-box">
+              <svg viewBox="0 0 132 62" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rasgueo parte 1: pulso 1 apagado abajo, pulso 2 abajo, pulso 3 arriba">
+                <g class="strum-step" id="p1-step-1">
+                  <line class="strum-step-arrow" x1="26" y1="6" x2="26" y2="30" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                  <line class="strum-step-arrow" x1="20" y1="24" x2="32" y2="35" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                  <line class="strum-step-arrow" x1="32" y1="24" x2="20" y2="35" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                  <circle class="strum-step-num" cx="26" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                  <text class="strum-step-text" x="26" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">1</text>
+                </g>
+                <g class="strum-step" id="p1-step-2">
+                  <line class="strum-step-arrow" x1="66" y1="6" x2="66" y2="31" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                  <polyline class="strum-step-arrow" points="59,25 66,33 73,25" fill="none" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle class="strum-step-num" cx="66" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                  <text class="strum-step-text" x="66" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">2</text>
+                </g>
+                <g class="strum-step" id="p1-step-3">
+                  <line class="strum-step-arrow" x1="106" y1="33" x2="106" y2="9" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                  <polygon class="strum-step-arrow-fill" points="106,5 99,14 113,14" fill="#1E293B" stroke="#1E293B" stroke-width="1"/>
+                  <circle class="strum-step-num" cx="106" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                  <text class="strum-step-text" x="106" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">3</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Cuadrícula inferior: Segunda parte (1: ↓ abajo, 2: ↓ abajo, 3: silencio) -->
+          <div class="strum-card" id="strum-part-2">
+            <div class="strum-card-head">
+              <span>2ª Parte (~0:36)</span>
+              <span>↓ · ↓ · —</span>
+            </div>
+            <div class="strum-grid-box">
+              <svg viewBox="0 0 132 62" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rasgueo parte 2: pulso 1 abajo, pulso 2 abajo, pulso 3 pausa">
+                <g class="strum-step" id="p2-step-1">
+                  <line class="strum-step-arrow" x1="26" y1="6" x2="26" y2="29" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                  <polygon class="strum-step-arrow-fill" points="26,34 19,25 33,25" fill="#1E293B" stroke="#1E293B" stroke-width="1"/>
+                  <circle class="strum-step-num" cx="26" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                  <text class="strum-step-text" x="26" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">1</text>
+                </g>
+                <g class="strum-step" id="p2-step-2">
+                  <line class="strum-step-arrow" x1="66" y1="6" x2="66" y2="29" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                  <polygon class="strum-step-arrow-fill" points="66,34 59,25 73,25" fill="#1E293B" stroke="#1E293B" stroke-width="1"/>
+                  <circle class="strum-step-num" cx="66" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                  <text class="strum-step-text" x="66" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">2</text>
+                </g>
+                <g class="strum-step" id="p2-step-3">
+                  <circle class="strum-step-num" cx="106" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                  <text class="strum-step-text" x="106" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">3</text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main id="stage"><canvas id="cv"></canvas></main>
+    </div>
+  </section>
 </div>
-
-<section class="stage-card card">
-  <header class="chord-bar" aria-live="polite">
-    <div class="chord-left">
-      <span class="chord-tag">Acorde actual</span>
-    </div>
-    <div class="chord-center">
-      <span id="chord-current" class="is-empty">Cargando MIDIs…</span>
-      <span id="chord-root"></span>
-    </div>
-    <div class="chord-right">
-      <span>Siguiente:</span>
-      <span id="chord-next">—</span>
-    </div>
-  </header>
-
-  <div class="stage-body">
-    <aside class="ukulele-box is-hidden" id="ukulele-panel" aria-label="Posición y rasgueo en ukelele">
-      <div class="uke-top-info">
-        <span class="uke-header">Ukelele</span>
-        <div class="uke-chord-title" id="uke-chord-name">Re menor</div>
-      </div>
-
-      <div class="uke-diagram-wrap" id="uke-diagram"></div>
-      <div class="uke-frets-pill" id="uke-frets-text">2 · 2 · 1 · 0</div>
-
-      <div class="uke-strum-section" aria-label="Patrones de rasgueo en 3 pulsos">
-        <!-- Cuadrícula superior: Primera parte (1: ↓✕ apagado, 2: ↓ abajo, 3: ↑ arriba) -->
-        <div class="strum-card is-active-part" id="strum-part-1">
-          <div class="strum-card-head">
-            <span>1ª Parte</span>
-            <span>↓✕ · ↓ · ↑</span>
-          </div>
-          <div class="strum-grid-box">
-            <svg viewBox="0 0 132 62" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rasgueo parte 1: pulso 1 apagado abajo, pulso 2 abajo, pulso 3 arriba">
-              <!-- Pulso 1: Flecha abajo con X -->
-              <g class="strum-step" id="p1-step-1">
-                <line class="strum-step-arrow" x1="26" y1="6" x2="26" y2="30" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
-                <line class="strum-step-arrow" x1="20" y1="24" x2="32" y2="35" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
-                <line class="strum-step-arrow" x1="32" y1="24" x2="20" y2="35" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
-                <circle class="strum-step-num" cx="26" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
-                <text class="strum-step-text" x="26" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">1</text>
-              </g>
-              <!-- Pulso 2: Flecha hacia abajo -->
-              <g class="strum-step" id="p1-step-2">
-                <line class="strum-step-arrow" x1="66" y1="6" x2="66" y2="31" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
-                <polyline class="strum-step-arrow" points="59,25 66,33 73,25" fill="none" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle class="strum-step-num" cx="66" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
-                <text class="strum-step-text" x="66" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">2</text>
-              </g>
-              <!-- Pulso 3: Flecha hacia arriba -->
-              <g class="strum-step" id="p1-step-3">
-                <line class="strum-step-arrow" x1="106" y1="33" x2="106" y2="9" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
-                <polygon class="strum-step-arrow-fill" points="106,5 99,14 113,14" fill="#1E293B" stroke="#1E293B" stroke-width="1"/>
-                <circle class="strum-step-num" cx="106" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
-                <text class="strum-step-text" x="106" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">3</text>
-              </g>
-            </svg>
-          </div>
-        </div>
-
-        <!-- Cuadrícula inferior: Segunda parte (1: ↓ abajo, 2: ↓ abajo, 3: silencio) -->
-        <div class="strum-card" id="strum-part-2">
-          <div class="strum-card-head">
-            <span>2ª Parte (~0:36)</span>
-            <span>↓ · ↓ · —</span>
-          </div>
-          <div class="strum-grid-box">
-            <svg viewBox="0 0 132 62" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rasgueo parte 2: pulso 1 abajo, pulso 2 abajo, pulso 3 pausa">
-              <!-- Pulso 1: Flecha hacia abajo -->
-              <g class="strum-step" id="p2-step-1">
-                <line class="strum-step-arrow" x1="26" y1="6" x2="26" y2="29" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
-                <polygon class="strum-step-arrow-fill" points="26,34 19,25 33,25" fill="#1E293B" stroke="#1E293B" stroke-width="1"/>
-                <circle class="strum-step-num" cx="26" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
-                <text class="strum-step-text" x="26" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">1</text>
-              </g>
-              <!-- Pulso 2: Flecha hacia abajo -->
-              <g class="strum-step" id="p2-step-2">
-                <line class="strum-step-arrow" x1="66" y1="6" x2="66" y2="29" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
-                <polygon class="strum-step-arrow-fill" points="66,34 59,25 73,25" fill="#1E293B" stroke="#1E293B" stroke-width="1"/>
-                <circle class="strum-step-num" cx="66" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
-                <text class="strum-step-text" x="66" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">2</text>
-              </g>
-              <!-- Pulso 3: Sin flecha (solo número 3 iluminado con el pulso) -->
-              <g class="strum-step" id="p2-step-3">
-                <circle class="strum-step-num" cx="106" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
-                <text class="strum-step-text" x="106" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">3</text>
-              </g>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <main id="stage"><canvas id="cv"></canvas></main>
-  </div>
-</section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tonejs/midi@2.0.28/build/Midi.js"></script>
@@ -961,50 +994,72 @@
 function initApp() {
   const el = id => document.getElementById(id);
 
+  /* Detectar si está abierta como App instalada (PWA en pantalla de inicio) */
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  if (isStandalone) {
+    document.body.classList.add("is-standalone");
+  }
+
+  /* ============================================================================
+     0. DESBLOQUEO DE AUDIO EN MODO SILENCIO PARA IPHONE (SAFARI Y CHROME iOS)
+     ============================================================================ */
+  const iosSilenceBypassEl = el("ios-silence-bypass");
+
+  function enableIosPlaybackSession() {
+    try {
+      if ("audioSession" in navigator && navigator.audioSession) {
+        navigator.audioSession.type = "playback";
+      }
+    } catch (e) {}
+
+    if (iosSilenceBypassEl) {
+      try {
+        iosSilenceBypassEl.volume = 0.01;
+        const p = iosSilenceBypassEl.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      } catch (e) {}
+    }
+  }
+
+  function pauseIosPlaybackSession() {
+    if (iosSilenceBypassEl && !iosSilenceBypassEl.paused) {
+      try {
+        iosSilenceBypassEl.pause();
+      } catch (e) {}
+    }
+  }
+
   /* ============================================================================
      1. CONFIGURACIÓN DE ARCHIVOS MIDI, PULSO Y CAMBIO DE PARTE
      ============================================================================ */
   const MIDI_FILES = {
     melody:     "./midis/melodiaprincipal.mid",
-    piano:      "./midis/piano.mid",          // Un solo MIDI de piano (2 pentagramas de MuseScore)
-    violin:     "./midis/violin.mid",         // Tercer MIDI opcional de violín ("violin")
-    violinAlt:  "./violin.mid",               // Respaldo por si está en la carpeta raíz
-    leftAlt:    "./midis/pianoizquierda.mid", // Respaldo opcional si se exportan por separado
-    rightAlt:   "./midis/pianoderecha.mid"    // Respaldo opcional si se exportan por separado
+    piano:      "./midis/piano.mid",
+    violin:     "./midis/violin.mid",
+    violinAlt:  "./violin.mid",
+    leftAlt:    "./midis/pianoizquierda.mid",
+    rightAlt:   "./midis/pianoderecha.mid"
   };
 
-  // Cada grupo de rasgueo tiene 3 pulsos (1 - 2 - 3)
   const PULSOS_POR_ACORDE = 3;
-
-  // CONFIGURACIÓN DEL CAMBIO A LA 2ª PARTE:
-  // - Puedes fijar el número exacto de compás de MuseScore en COMPAS_INICIO_PARTE_2
-  //   (por ejemplo: const COMPAS_INICIO_PARTE_2 = 21;).
-  // - Si lo dejas en null, lo detecta automáticamente cerca de SEGUNDO_INICIO_PARTE_2 (36s).
   const COMPAS_INICIO_PARTE_2 = null;
   const SEGUNDO_INICIO_PARTE_2 = 36.0;
-
-  // Punto de corte de respaldo solo si el MIDI de piano viniera en 1 sola pista y 1 canal
   const NOTA_DIVISION = 60;
 
-  /**
-   * DEFINICIÓN MANUAL DE ACORDES (OPCIONAL, POR COMPÁS DE 3 PULSOS):
-   */
   const ACORDES_MANUALES = [
     // { compas: 1, pulso: 1, acorde: "Re menor" },
   ];
 
-  /* Mapeo por nota fundamental (clase de altura MIDI 0..11) */
   const ACORDES_POR_FUNDAMENTAL = {
-    2:  { nombre: "Re menor",  nota: "Re"  }, // D
-    5:  { nombre: "Fa Mayor",  nota: "Fa"  }, // F
-    7:  { nombre: "Sol menor", nota: "Sol" }, // G
-    0:  { nombre: "Do Mayor",  nota: "Do"  }, // C
-    9:  { nombre: "La 7",      nota: "La"  }, // A
-    10: { nombre: "Sib Mayor", nota: "Sib" }, // Bb
-    4:  { nombre: "Mi menor",  nota: "Mi"  }  // E
+    2:  { nombre: "Re menor",  nota: "Re"  },
+    5:  { nombre: "Fa Mayor",  nota: "Fa"  },
+    7:  { nombre: "Sol menor", nota: "Sol" },
+    0:  { nombre: "Do Mayor",  nota: "Do"  },
+    9:  { nombre: "La 7",      nota: "La"  },
+    10: { nombre: "Sib Mayor", nota: "Sib" },
+    4:  { nombre: "Mi menor",  nota: "Mi"  }
   };
 
-  /* Diagramas de acordes para Ukelele (afinación estándar G - C - E - A) */
   const UKULELE_CHORDS = {
     "re menor":   { frets: [2, 2, 1, 0], fingers: [2, 3, 1, 0] },
     "dm":         { frets: [2, 2, 1, 0], fingers: [2, 3, 1, 0] },
@@ -1115,8 +1170,8 @@ function initApp() {
   /* ============================================================================
      2. RANGO DEL PIANO: DE A2 (45) A B4 (71)
      ============================================================================ */
-  const MIN_MIDI = 45; // A2 (La 2)
-  const MAX_MIDI = 71; // B4 (Si 4)
+  const MIN_MIDI = 45;
+  const MAX_MIDI = 71;
   const NOTE_NAMES_ES = ["Do", "Do#", "Re", "Mib", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "Sib", "Si"];
   const BLACK_PCS = new Set([1, 3, 6, 8, 10]);
 
@@ -1432,11 +1487,6 @@ function initApp() {
     };
   }
 
-  /**
-   * Agrupa las notas simultáneas del piano en ataques rítmicos reales
-   * (ej. ataque 1: Re, ataque 2: La, ataque 3: Re-Fa) y mide la subdivisión
-   * real del movimiento del piano para que el ukelele marque exactamente 1 - 2 - 3.
-   */
   function analyzePianoRhythm(leftNotes, rightNotes, tsDenom, leadBeats) {
     const pianoAll = [...leftNotes, ...rightNotes].sort((a, b) => a.startBeat - b.startBeat);
     const attacks = [];
@@ -1464,7 +1514,6 @@ function initApp() {
       };
     }
 
-    // Medir la distancia más frecuente entre ataques consecutivos del arpegio inicial
     const diffs = [];
     const limit = Math.min(attacks.length - 1, 36);
     for (let i = 0; i < limit; i++) {
@@ -1478,7 +1527,6 @@ function initApp() {
     if (diffs.length >= 3) {
       diffs.sort((a, b) => a - b);
       const medianDiff = diffs[Math.floor(diffs.length / 2)];
-      // Encajar a figura musical estándar (corchea = 0.5 o negra = 1.0 negra MIDI)
       if (medianDiff < 0.72) {
         pulseStepBeats = 0.5;
       } else {
@@ -1490,12 +1538,6 @@ function initApp() {
     return { attacks, pulseStepBeats, pulseAnchorBeat };
   }
 
-  /**
-   * Detecta el inicio de la 2ª parte alrededor del segundo 36:
-   * - Distingue la 1ª parte (donde el 3er pulso tiene notas y el 2º pulso es una nota suelta)
-   *   de la 2ª parte (donde el piano da acordes fijos de golpe en los pulsos 1 y 2,
-   *   como Do -> Do-Mi-Sol, dejando el pulso 3 en silencio/ligado).
-   */
   function detectPart2StartBeat(attacks, pulseStepBeats, pulseAnchorBeat, bpm) {
     const spb = 60 / bpm;
     const measureBeats = PULSOS_POR_ACORDE * pulseStepBeats;
@@ -1510,9 +1552,6 @@ function initApp() {
 
     if (!attacks.length) return fallbackBeat;
 
-    // Buscar específicamente alrededor del segundo 36 (entre 34.0s y 39.5s)
-    // el compás donde el piano cambia al patrón de 2ª parte:
-    // pulso 1 = bajo (1 nota), pulso 2 = acorde en bloque (>= 3 notas) y/o pulso 3 sin ataque
     const minBeatSearch = 34.0 / spb;
     const maxBeatSearch = 39.5 / spb;
     const startIdx = Math.max(1, Math.floor((minBeatSearch - pulseAnchorBeat) / measureBeats));
@@ -1544,9 +1583,6 @@ function initApp() {
     return bestCandidate !== null ? bestCandidate : fallbackBeat;
   }
 
-  /**
-   * Construye la línea de tiempo de acordes agrupados en bloques de 3 pulsos reales del piano
-   */
   function buildChordTimeline(attacks, pulseStepBeats, pulseAnchorBeat) {
     const measureBeats = PULSOS_POR_ACORDE * pulseStepBeats;
 
@@ -1793,7 +1829,6 @@ function initApp() {
 
     let pulseNum = 0;
     if (isPlaying) {
-      // Sincronizado con el movimiento real del piano (ej. Re = 1, La = 2, Re-Fa = 3)
       const relSteps = (beat - anchorBeat + stepBeats * 0.08) / stepBeats;
       const stepIdx = ((Math.floor(relSteps) % PULSOS_POR_ACORDE) + PULSOS_POR_ACORDE) % PULSOS_POR_ACORDE;
       pulseNum = stepIdx + 1;
@@ -1877,7 +1912,7 @@ function initApp() {
   }
 
   /* ============================================================================
-     6. CONTROLES DE REPRODUCCIÓN, UKELELE, VIOLÍN, VELOCIDAD Y PANTALLA COMPLETA
+     6. CONTROLES DE REPRODUCCIÓN, UKELELE, VIOLÍN, VELOCIDAD Y EXPANSIÓN
      ============================================================================ */
   const ticksNow = () => Tone.Transport.getTicksAtTime(Tone.getContext().currentTime);
   const getBeat = () => (Tone.Transport.state === "started" ? ticksNow() : posTicks) / Tone.Transport.PPQ;
@@ -1894,6 +1929,7 @@ function initApp() {
     melodySynth.releaseAll();
     releaseAllPiano();
     releaseAllViolin();
+    pauseIosPlaybackSession();
     setPlayButtonState(false);
     el("seek").value = 0;
     lastRenderedChord = "";
@@ -1903,6 +1939,7 @@ function initApp() {
   }
 
   el("play").addEventListener("click", async () => {
+    enableIosPlaybackSession();
     await Tone.start();
     const T = Tone.Transport;
     if (T.state === "started") {
@@ -1911,11 +1948,16 @@ function initApp() {
       melodySynth.releaseAll();
       releaseAllPiano();
       releaseAllViolin();
+      pauseIosPlaybackSession();
       setPlayButtonState(false);
     } else {
       if (posTicks / T.PPQ >= song.endBeat - 0.01) posTicks = 0;
       T.start(undefined, Math.round(posTicks) + "i");
       setPlayButtonState(true);
+      // Sugerir colapso de barra del navegador en móvil al iniciar
+      if (window.scrollY < 10) {
+        window.scrollTo({ top: 44, behavior: "smooth" });
+      }
     }
   });
 
@@ -1932,6 +1974,7 @@ function initApp() {
 
   const violinBtn = el("toggle-violin");
   violinBtn.addEventListener("click", async () => {
+    enableIosPlaybackSession();
     await Tone.start();
     violinMode = !violinMode;
     violinBtn.setAttribute("aria-pressed", String(violinMode));
@@ -1957,21 +2000,21 @@ function initApp() {
 
   function updateFsButton(active) {
     el("fs").innerHTML = active
-      ? '<span aria-hidden="true">✕</span><span class="fs-label">Salir</span>'
-      : '<span aria-hidden="true">⛶</span><span class="fs-label">Pantalla completa</span>';
+      ? '<span aria-hidden="true">✕</span><span class="fs-label">Normal</span>'
+      : '<span aria-hidden="true">⛶</span><span class="fs-label">Expandir</span>';
   }
 
   function enterStudyFullscreen() {
     document.body.classList.add("is-fullscreen");
     updateFsButton(true);
-    window.scrollTo(0, 1);
-    setTimeout(resize, 60);
+    window.scrollTo({ top: 60, behavior: "smooth" });
+    setTimeout(resize, 80);
   }
 
   function exitStudyFullscreen() {
     document.body.classList.remove("is-fullscreen");
     updateFsButton(false);
-    setTimeout(resize, 60);
+    setTimeout(resize, 80);
   }
 
   function toggleFullscreen() {
@@ -2028,6 +2071,7 @@ function initApp() {
     dragging = false;
     posTicks = Math.round(parseFloat(seek.value) * Tone.Transport.PPQ);
     if (wasPlaying) {
+      enableIosPlaybackSession();
       Tone.Transport.start(undefined, posTicks + "i");
       wasPlaying = false;
     }
@@ -2071,13 +2115,13 @@ function initApp() {
 
     if (violinMode) {
       if (isPortraitMobile) {
-        L.staffH = Math.max(105, Math.min(138, Math.round(H * 0.26)));
+        L.staffH = Math.max(108, Math.min(142, Math.round(H * 0.27)));
         L.keyH   = Math.max(85,  Math.min(120, Math.round(H * 0.21)));
       } else if (isLandscapeMobile) {
-        L.staffH = Math.max(82,  Math.min(110, Math.round(H * 0.30)));
-        L.keyH   = Math.max(66,  Math.min(92,  Math.round(H * 0.25)));
+        L.staffH = Math.max(92,  Math.min(118, Math.round(H * 0.34)));
+        L.keyH   = Math.max(60,  Math.min(82,  Math.round(H * 0.23)));
       } else {
-        L.staffH = Math.max(115, Math.min(155, Math.round(H * 0.27)));
+        L.staffH = Math.max(118, Math.min(155, Math.round(H * 0.27)));
         L.keyH   = Math.max(98,  Math.min(140, Math.round(H * 0.22)));
       }
     } else {
@@ -2085,19 +2129,19 @@ function initApp() {
       if (isPortraitMobile) {
         L.keyH = Math.max(105, Math.min(148, Math.round(H * 0.24)));
       } else if (isLandscapeMobile) {
-        L.keyH = Math.max(78, Math.min(112, Math.round(H * 0.30)));
+        L.keyH = Math.max(76, Math.min(108, Math.round(H * 0.30)));
       } else {
         L.keyH = Math.max(125, Math.min(180, Math.round(H * 0.25)));
       }
     }
 
-    L.fallH = Math.max(70, H - L.keyH - L.staffH);
+    L.fallH = Math.max(62, H - L.keyH - L.staffH);
     L.whiteW = W / WHITE_KEYS.length;
     L.blackW = L.whiteW * 0.60;
     L.blackH = L.keyH * 0.62;
 
-    const visibleBeats = isLandscapeMobile ? 3.4 : (isPortraitMobile ? 4.8 : 4.5);
-    L.pxPerBeat = Math.max(46, L.fallH / visibleBeats);
+    const visibleBeats = isLandscapeMobile ? 3.2 : (isPortraitMobile ? 4.8 : 4.5);
+    L.pxPerBeat = Math.max(42, L.fallH / visibleBeats);
 
     WHITE_KEYS.forEach((k, idx) => {
       k.x = idx * L.whiteW;
@@ -2116,7 +2160,7 @@ function initApp() {
   function resize() {
     const r = stage.getBoundingClientRect();
     W = Math.max(220, Math.floor(r.width));
-    H = Math.max(160, Math.floor(r.height));
+    H = Math.max(150, Math.floor(r.height));
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     cv.width = W * dpr;
     cv.height = H * dpr;
@@ -2126,6 +2170,9 @@ function initApp() {
 
   new ResizeObserver(resize).observe(stage);
   window.addEventListener("resize", resize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", resize);
+  }
   resize();
 
   let manualPressedMidi = null;
@@ -2146,6 +2193,7 @@ function initApp() {
     const rect = cv.getBoundingClientRect();
     const key = findKeyAtPoint(e.clientX - rect.left, e.clientY - rect.top);
     if (!key) return;
+    enableIosPlaybackSession();
     await Tone.start();
     manualPressedMidi = key.midi;
     triggerPianoNote(key.midi, "4n", undefined, 0.85);
@@ -2314,7 +2362,7 @@ function initApp() {
         ctx.font = `${wk.pc === 0 ? "900" : "700"} ${fontSize}px 'Nunito', sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
-        ctx.fillText(wk.label, wk.x + wk.w / 2, topY + wk.h - 5);
+        ctx.fillText(wk.label, wk.x + wk.w / 2, topY + wk.h - 4);
       }
     }
 
@@ -2393,9 +2441,9 @@ function initApp() {
     ctx.fillStyle = "#7C3AED";
     ctx.fillRect(0, staffTop, W, 3);
 
-    const lineGap = Math.max(7.5, Math.min(11.5, staffH * 0.082));
+    const lineGap = Math.max(7.2, Math.min(11.5, staffH * 0.082));
     const halfStep = lineGap / 2;
-    const bottomLineY = staffTop + staffH * 0.66;
+    const bottomLineY = staffTop + staffH * 0.65;
     const topLineY = bottomLineY - 4 * lineGap;
 
     ctx.strokeStyle = "#94A3B8";
@@ -2552,10 +2600,10 @@ function initApp() {
           }
         }
 
-        if (staffH >= 96) {
-          const labelY = Math.min(staffTop + staffH - 4, Math.max(bottomLineY + lineGap * 1.6, ny + lineGap * 1.45));
+        if (staffH >= 88) {
+          const labelY = Math.min(staffTop + staffH - 3, Math.max(bottomLineY + lineGap * 1.5, ny + lineGap * 1.4));
           ctx.fillStyle = isActive ? "#DC2626" : "#475569";
-          ctx.font = `${isActive ? "900" : "700"} 10px 'Nunito', sans-serif`;
+          ctx.font = `${isActive ? "900" : "700"} 9.5px 'Nunito', sans-serif`;
           ctx.textAlign = "center";
           ctx.textBaseline = "bottom";
           ctx.fillText(NOTE_NAMES_ES[pc], nx, labelY);
