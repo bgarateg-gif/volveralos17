@@ -27,6 +27,9 @@
     --violin-accent: #7C3AED;
     --violin-bg: #F5F3FF;
     --violin-border: #C4B5FD;
+    --uke-accent: #0D9488;
+    --uke-bg: #F0FDFA;
+    --uke-border: #99F6E4;
   }
 
   * {
@@ -93,6 +96,7 @@
 
   body.is-fullscreen #play,
   body.is-fullscreen #stop,
+  body.is-fullscreen #toggle-ukulele,
   body.is-fullscreen #toggle-violin,
   body.is-fullscreen #fs {
     min-height: 32px !important;
@@ -111,7 +115,7 @@
   .controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 12px;
+    gap: 8px 10px;
     align-items: center;
     padding: 9px 14px;
     flex-shrink: 0;
@@ -128,8 +132,8 @@
   }
 
   .speed-group {
-    flex: 1 1 155px;
-    max-width: 220px;
+    flex: 1 1 145px;
+    max-width: 210px;
     min-width: 0;
   }
 
@@ -139,7 +143,7 @@
   }
 
   .seek-group {
-    flex: 1 1 200px;
+    flex: 1 1 180px;
     min-width: 0;
   }
 
@@ -193,14 +197,14 @@
     font-size: 13.5px;
     font-weight: 700;
     min-height: 35px;
-    padding: 5px 12px;
+    padding: 5px 11px;
     border-radius: 10px;
     cursor: pointer;
     touch-action: manipulation;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 5px;
     white-space: nowrap;
     transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
   }
@@ -219,7 +223,7 @@
     background: var(--primary);
     color: #FFFFFF;
     border: none;
-    padding: 5px 16px;
+    padding: 5px 15px;
     box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
   }
 
@@ -237,6 +241,26 @@
   .btn-sec:hover {
     background: #F1F5F9;
     border-color: #CBD5E1;
+  }
+
+  /* Botón opcional de Ukelele */
+  #toggle-ukulele {
+    background: var(--surface);
+    color: var(--fg);
+    border: 1.5px solid var(--border);
+  }
+
+  #toggle-ukulele:hover {
+    background: var(--uke-bg);
+    border-color: var(--uke-border);
+    color: var(--uke-accent);
+  }
+
+  #toggle-ukulele[aria-pressed="true"] {
+    background: var(--uke-accent);
+    color: #FFFFFF;
+    border-color: var(--uke-accent);
+    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.28);
   }
 
   /* Botón opcional de pentagrama de Violín */
@@ -265,7 +289,7 @@
 
   input[type=range] {
     flex: 1;
-    min-width: 55px;
+    min-width: 50px;
     height: 24px;
     accent-color: #4F46E5;
     cursor: pointer;
@@ -389,7 +413,7 @@
     color: var(--fg);
   }
 
-  /* Contenedor horizontal: Recuadro de Ukelele a la izquierda + Escenario Piano/Violín a la derecha */
+  /* Contenedor horizontal: Recuadro de Ukelele (opcional) + Escenario Piano/Violín */
   .stage-body {
     flex: 1;
     min-height: 0;
@@ -399,53 +423,67 @@
   }
 
   .ukulele-box {
-    width: 168px;
+    width: 186px;
     flex-shrink: 0;
     background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 10px 8px;
-    gap: 6px;
+    justify-content: space-between;
+    padding: 8px 8px;
+    gap: 5px;
+    overflow-y: auto;
     user-select: none;
+  }
+
+  .ukulele-box.is-hidden {
+    display: none;
+  }
+
+  .uke-top-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
   }
 
   .uke-header {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    font-size: 11px;
+    gap: 4px;
+    font-size: 10px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--muted);
-    background: #FFFFFF;
-    border: 1px solid var(--border);
-    padding: 2px 9px;
+    color: var(--uke-accent);
+    background: var(--uke-bg);
+    border: 1px solid var(--uke-border);
+    padding: 1px 8px;
     border-radius: 999px;
   }
 
   .uke-chord-title {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 900;
     color: var(--fg);
     text-align: center;
-    line-height: 1.15;
+    line-height: 1.1;
   }
 
   .uke-diagram-wrap {
     width: 100%;
-    max-width: 136px;
+    max-width: 132px;
     background: #FFFFFF;
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 6px 4px 4px;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    border-radius: 10px;
+    padding: 4px 4px 2px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
   }
 
   .uke-diagram-wrap svg {
@@ -455,15 +493,109 @@
   }
 
   .uke-frets-pill {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: var(--primary);
     background: #EEF2FF;
     border: 1px solid #C7D2FE;
-    padding: 2px 10px;
+    padding: 1px 8px;
     border-radius: 999px;
     letter-spacing: 0.04em;
+  }
+
+  /* ============ Cuadrículas de Rasgueo (Parte 1 superior y Parte 2 inferior) ============ */
+  .uke-strum-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 2px;
+  }
+
+  .strum-card {
+    width: 100%;
+    background: #FFFFFF;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 6px 5px;
+    opacity: 0.56;
+    transition: opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+
+  .strum-card.is-active-part {
+    opacity: 1;
+    border-color: var(--uke-accent);
+    background: #FFFFFF;
+    box-shadow: 0 3px 10px rgba(13, 148, 136, 0.14);
+  }
+
+  .strum-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 9.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: 2px;
+    padding: 0 2px;
+  }
+
+  .strum-card.is-active-part .strum-card-head {
+    color: var(--uke-accent);
+  }
+
+  .strum-grid-box {
+    border: 1.5px solid #334155;
+    border-radius: 6px;
+    background: #F8FAFC;
+    padding: 3px 2px;
+  }
+
+  .strum-card.is-active-part .strum-grid-box {
+    border-color: #0F172A;
+    background: #FFFFFF;
+  }
+
+  .strum-grid-box svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .strum-step-num {
+    transition: fill 0.08s ease, stroke 0.08s ease;
+  }
+
+  .strum-step-text {
+    transition: fill 0.08s ease;
+  }
+
+  .strum-step-arrow {
+    transition: stroke 0.08s ease, fill 0.08s ease;
+  }
+
+  /* Pulso activo iluminado (1 -> 2 -> 3 -> 1) */
+  .strum-step.is-lit .strum-step-num {
+    fill: #F59E0B;
+    stroke: #B45309;
+    stroke-width: 2;
+  }
+
+  .strum-step.is-lit .strum-step-text {
+    fill: #FFFFFF;
+  }
+
+  .strum-step.is-lit .strum-step-arrow {
+    stroke: #D97706;
+  }
+
+  .strum-step.is-lit .strum-step-arrow-fill {
+    fill: #D97706;
+    stroke: #D97706;
   }
 
   main {
@@ -564,18 +696,18 @@
     }
 
     .ukulele-box {
-      width: 112px;
+      width: 124px;
       padding: 6px 5px;
       gap: 4px;
     }
 
     .uke-chord-title {
-      font-size: 14px;
+      font-size: 13.5px;
     }
 
     .uke-frets-pill {
-      font-size: 11px;
-      padding: 1px 7px;
+      font-size: 10.5px;
+      padding: 1px 6px;
     }
   }
 
@@ -605,7 +737,7 @@
     button {
       min-height: 30px;
       font-size: 12.5px;
-      padding: 2px 9px;
+      padding: 2px 8px;
       border-radius: 8px;
     }
 
@@ -615,12 +747,12 @@
     }
 
     .speed-group {
-      flex: 1 1 95px;
-      max-width: 145px;
+      flex: 1 1 90px;
+      max-width: 140px;
     }
 
     .seek-group {
-      flex: 1 1 130px;
+      flex: 1 1 120px;
     }
 
     #time {
@@ -656,9 +788,9 @@
     }
 
     .ukulele-box {
-      width: 118px;
+      width: 132px;
       padding: 4px 5px;
-      gap: 2px;
+      gap: 3px;
     }
 
     .uke-header {
@@ -666,17 +798,25 @@
     }
 
     .uke-chord-title {
-      font-size: 13px;
+      font-size: 12.5px;
     }
 
     .uke-diagram-wrap {
-      max-width: 96px;
-      padding: 3px 2px 2px;
+      max-width: 92px;
+      padding: 2px;
     }
 
     .uke-frets-pill {
-      font-size: 10.5px;
-      padding: 1px 6px;
+      font-size: 10px;
+      padding: 1px 5px;
+    }
+
+    .strum-card {
+      padding: 2px 4px 3px;
+    }
+
+    .strum-card-head {
+      font-size: 8.5px;
     }
   }
 </style>
@@ -707,6 +847,9 @@
   </div>
 
   <div class="actions-right">
+    <button id="toggle-ukulele" type="button" aria-pressed="false" title="Mostrar acordes y rasgueo en ukelele">
+      <span aria-hidden="true">🎸</span><span>Ukelele</span>
+    </button>
     <button id="toggle-violin" type="button" aria-pressed="false" title="Mostrar pentagrama de violín y destacar violín 2">
       <span aria-hidden="true">🎻</span><span>Violín</span>
     </button>
@@ -732,11 +875,81 @@
   </header>
 
   <div class="stage-body">
-    <aside class="ukulele-box" aria-label="Posición del acorde en ukelele">
-      <span class="uke-header">Ukelele</span>
-      <div class="uke-chord-title" id="uke-chord-name">Re menor</div>
+    <aside class="ukulele-box is-hidden" id="ukulele-panel" aria-label="Posición y rasgueo en ukelele">
+      <div class="uke-top-info">
+        <span class="uke-header">Ukelele</span>
+        <div class="uke-chord-title" id="uke-chord-name">Re menor</div>
+      </div>
+
       <div class="uke-diagram-wrap" id="uke-diagram"></div>
       <div class="uke-frets-pill" id="uke-frets-text">2 · 2 · 1 · 0</div>
+
+      <div class="uke-strum-section" aria-label="Patrones de rasgueo en 3 pulsos">
+        <!-- Cuadrícula superior: Primera parte (1: ↓✕ apagado, 2: ↓ abajo, 3: ↑ arriba) -->
+        <div class="strum-card is-active-part" id="strum-part-1">
+          <div class="strum-card-head">
+            <span>1ª Parte</span>
+            <span>↓✕ · ↓ · ↑</span>
+          </div>
+          <div class="strum-grid-box">
+            <svg viewBox="0 0 132 62" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rasgueo parte 1: pulso 1 apagado abajo, pulso 2 abajo, pulso 3 arriba">
+              <!-- Pulso 1: Flecha abajo con X -->
+              <g class="strum-step" id="p1-step-1">
+                <line class="strum-step-arrow" x1="26" y1="6" x2="26" y2="30" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                <line class="strum-step-arrow" x1="20" y1="24" x2="32" y2="35" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                <line class="strum-step-arrow" x1="32" y1="24" x2="20" y2="35" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                <circle class="strum-step-num" cx="26" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                <text class="strum-step-text" x="26" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">1</text>
+              </g>
+              <!-- Pulso 2: Flecha hacia abajo -->
+              <g class="strum-step" id="p1-step-2">
+                <line class="strum-step-arrow" x1="66" y1="6" x2="66" y2="31" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                <polyline class="strum-step-arrow" points="59,25 66,33 73,25" fill="none" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle class="strum-step-num" cx="66" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                <text class="strum-step-text" x="66" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">2</text>
+              </g>
+              <!-- Pulso 3: Flecha hacia arriba -->
+              <g class="strum-step" id="p1-step-3">
+                <line class="strum-step-arrow" x1="106" y1="33" x2="106" y2="9" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                <polygon class="strum-step-arrow-fill" points="106,5 99,14 113,14" fill="#1E293B" stroke="#1E293B" stroke-width="1"/>
+                <circle class="strum-step-num" cx="106" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                <text class="strum-step-text" x="106" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">3</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Cuadrícula inferior: Segunda parte (1: ↓ abajo, 2: ↓ abajo, 3: silencio) -->
+        <div class="strum-card" id="strum-part-2">
+          <div class="strum-card-head">
+            <span>2ª Parte (~0:36)</span>
+            <span>↓ · ↓ · —</span>
+          </div>
+          <div class="strum-grid-box">
+            <svg viewBox="0 0 132 62" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Rasgueo parte 2: pulso 1 abajo, pulso 2 abajo, pulso 3 pausa">
+              <!-- Pulso 1: Flecha hacia abajo -->
+              <g class="strum-step" id="p2-step-1">
+                <line class="strum-step-arrow" x1="26" y1="6" x2="26" y2="29" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                <polygon class="strum-step-arrow-fill" points="26,34 19,25 33,25" fill="#1E293B" stroke="#1E293B" stroke-width="1"/>
+                <circle class="strum-step-num" cx="26" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                <text class="strum-step-text" x="26" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">1</text>
+              </g>
+              <!-- Pulso 2: Flecha hacia abajo -->
+              <g class="strum-step" id="p2-step-2">
+                <line class="strum-step-arrow" x1="66" y1="6" x2="66" y2="29" stroke="#1E293B" stroke-width="2.4" stroke-linecap="round"/>
+                <polygon class="strum-step-arrow-fill" points="66,34 59,25 73,25" fill="#1E293B" stroke="#1E293B" stroke-width="1"/>
+                <circle class="strum-step-num" cx="66" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                <text class="strum-step-text" x="66" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">2</text>
+              </g>
+              <!-- Pulso 3: Sin flecha (solo número 3 iluminado con el pulso) -->
+              <g class="strum-step" id="p2-step-3">
+                <circle class="strum-step-num" cx="106" cy="48" r="10.5" fill="#FFFFFF" stroke="#475569" stroke-width="1.6"/>
+                <text class="strum-step-text" x="106" y="51.8" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11.5" font-weight="900" fill="#1E293B">3</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
     </aside>
 
     <main id="stage"><canvas id="cv"></canvas></main>
@@ -764,6 +977,9 @@ function initApp() {
   // Los acordes se evalúan en bloques de 3 pulsos (pulsos 1, 2 y 3 = mismo acorde)
   const PULSOS_POR_ACORDE = 3;
 
+  // Segundo aproximado en el que inicia la segunda parte (acordes fijos de golpe)
+  const SEGUNDO_INICIO_PARTE_2 = 36;
+
   // Punto de corte de respaldo solo si el MIDI de piano viniera en 1 sola pista y 1 canal:
   // 60 = Do4 (centro del rango A2–B4)
   const NOTA_DIVISION = 60;
@@ -784,11 +1000,13 @@ function initApp() {
 
   /* Mapeo por nota fundamental (clase de altura MIDI 0..11) */
   const ACORDES_POR_FUNDAMENTAL = {
-    2: { nombre: "Re menor",  nota: "Re"  }, // D
-    5: { nombre: "Fa Mayor",  nota: "Fa"  }, // F
-    7: { nombre: "Sol menor", nota: "Sol" }, // G
-    0: { nombre: "Do Mayor",  nota: "Do"  }, // C
-    9: { nombre: "La 7",      nota: "La"  }  // A
+    2:  { nombre: "Re menor",  nota: "Re"  }, // D
+    5:  { nombre: "Fa Mayor",  nota: "Fa"  }, // F
+    7:  { nombre: "Sol menor", nota: "Sol" }, // G
+    0:  { nombre: "Do Mayor",  nota: "Do"  }, // C
+    9:  { nombre: "La 7",      nota: "La"  }, // A
+    10: { nombre: "Sib Mayor", nota: "Sib" }, // Bb
+    4:  { nombre: "Mi menor",  nota: "Mi"  }  // E
   };
 
   /* Diagramas de acordes para Ukelele (afinación estándar G - C - E - A) */
@@ -838,36 +1056,33 @@ function initApp() {
     const stringNames = ["G", "C", "E", "A"];
     const startX = 28;
     const stepX = 25;
-    const topY = 38;
-    const fretH = 24;
+    const topY = 34;
+    const fretH = 21;
     const numFrets = 4;
     const endX = startX + stepX * 3;
     const endY = topY + fretH * numFrets;
 
-    let svg = `<svg viewBox="0 0 124 146" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Acorde ${cleanName} en ukelele: ${frets.join("-")}">`;
+    let svg = `<svg viewBox="0 0 124 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Acorde ${cleanName} en ukelele: ${frets.join("-")}">`;
 
-    // Nombres de cuerdas arriba (G C E A)
     for (let s = 0; s < 4; s++) {
       const x = startX + s * stepX;
-      svg += `<text x="${x}" y="14" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10.5" font-weight="800" fill="#64748B">${stringNames[s]}</text>`;
+      svg += `<text x="${x}" y="13" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10.5" font-weight="800" fill="#64748B">${stringNames[s]}</text>`;
     }
 
-    // Círculos de cuerda al aire (0) o X de cuerda muteada
     for (let s = 0; s < 4; s++) {
       const x = startX + s * stepX;
       const f = frets[s];
       if (f === 0) {
-        svg += `<circle cx="${x}" cy="27" r="4.2" fill="none" stroke="#22C55E" stroke-width="1.8"/>`;
+        svg += `<circle cx="${x}" cy="24" r="4" fill="none" stroke="#22C55E" stroke-width="1.8"/>`;
       } else if (f < 0) {
-        svg += `<text x="${x}" y="31" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#EF4444">✕</text>`;
+        svg += `<text x="${x}" y="28" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#EF4444">✕</text>`;
       }
     }
 
-    // Líneas horizontales de los trastes y números de traste
     for (let f = 0; f <= numFrets; f++) {
       const y = topY + f * fretH;
       const isNut = (f === 0 && baseFret === 1);
-      svg += `<line x1="${startX - 1}" y1="${y}" x2="${endX + 1}" y2="${y}" stroke="${isNut ? "#1E293B" : "#CBD5E1"}" stroke-width="${isNut ? 4.2 : 1.5}" stroke-linecap="round"/>`;
+      svg += `<line x1="${startX - 1}" y1="${y}" x2="${endX + 1}" y2="${y}" stroke="${isNut ? "#1E293B" : "#CBD5E1"}" stroke-width="${isNut ? 4 : 1.5}" stroke-linecap="round"/>`;
       if (f < numFrets) {
         const fretNum = baseFret + f;
         const labelY = y + fretH / 2 + 3.5;
@@ -875,13 +1090,11 @@ function initApp() {
       }
     }
 
-    // 4 cuerdas verticales
     for (let s = 0; s < 4; s++) {
       const x = startX + s * stepX;
       svg += `<line x1="${x}" y1="${topY}" x2="${x}" y2="${endY}" stroke="#64748B" stroke-width="${1.8 - s * 0.15}"/>`;
     }
 
-    // Puntos de digitación en los trastes
     for (let s = 0; s < 4; s++) {
       const f = frets[s];
       if (f > 0) {
@@ -890,9 +1103,9 @@ function initApp() {
           const cx = startX + s * stepX;
           const cy = topY + (relFret - 0.5) * fretH;
           const finger = fingers[s];
-          svg += `<circle cx="${cx}" cy="${cy}" r="8.5" fill="#4F46E5" stroke="#FFFFFF" stroke-width="1.5"/>`;
+          svg += `<circle cx="${cx}" cy="${cy}" r="8" fill="#4F46E5" stroke="#FFFFFF" stroke-width="1.4"/>`;
           if (finger > 0) {
-            svg += `<text x="${cx}" y="${cy + 3.5}" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" font-weight="800" fill="#FFFFFF">${finger}</text>`;
+            svg += `<text x="${cx}" y="${cy + 3.3}" text-anchor="middle" font-family="Nunito, sans-serif" font-size="9.5" font-weight="800" fill="#FFFFFF">${finger}</text>`;
           }
         }
       }
@@ -902,7 +1115,6 @@ function initApp() {
     el("uke-diagram").innerHTML = svg;
   }
 
-  // Render inicial del diagrama de ukelele
   renderUkuleleDiagram("Re menor");
 
   /* ============================================================================
@@ -910,7 +1122,6 @@ function initApp() {
      ============================================================================ */
   const MIN_MIDI = 45; // A2 (La 2)
   const MAX_MIDI = 71; // B4 (Si 4)
-  // Nomenclatura adaptada a la tonalidad (con Sib en lugar de La#)
   const NOTE_NAMES_ES = ["Do", "Do#", "Re", "Mib", "Mi", "Fa", "Fa#", "Sol", "Sol#", "La", "Sib", "Si"];
   const BLACK_PCS = new Set([1, 3, 6, 8, 10]);
 
@@ -945,18 +1156,22 @@ function initApp() {
   }
 
   /* ============================================================================
-     3. SONIDO REAL DE PIANO, VOZ/MELODÍA Y VIOLÍN (Tone.js)
+     3. SONIDO REAL DE PIANO, VOZ/MELODÍA Y VIOLÍN SIN SATURACIÓN (<= 0 dB)
      ============================================================================ */
   let violinMode = false;
+  let ukuleleMode = false;
+
+  /* Limitador maestro suave para garantizar cero saturación */
+  const masterLimiter = new Tone.Limiter(-1).toDestination();
 
   /* Reverb sutil de sala para calidez acústica */
   const roomReverb = new Tone.Reverb({
     decay: 1.4,
     preDelay: 0.01,
-    wet: 0.18
-  }).toDestination();
+    wet: 0.16
+  }).connect(masterLimiter);
 
-  /* Piano de respaldo acústico (modelado armónico con filtro dinámico, por si no hay red) */
+  /* Piano de respaldo acústico */
   const pianoFallbackFilter = new Tone.Filter({
     type: "lowpass",
     frequency: 2600,
@@ -1026,38 +1241,38 @@ function initApp() {
     envelope: { attack: 0.04, decay: 0.12, sustain: 0.80, release: 0.18 }
   }).connect(vibrato);
 
-  /* Violín 1 y Violín 2 (timbre expresivo de cuerda frotada con vibrato) */
+  /* Violín 1 y Violín 2 (suaves, sin saturación, <= 0 dB) */
   const violinFilter = new Tone.Filter({
     type: "lowpass",
-    frequency: 3400,
-    Q: 1.1
+    frequency: 3000,
+    Q: 0.85
   }).connect(roomReverb);
 
-  const violinVibrato = new Tone.Vibrato(5.2, 0.065).connect(violinFilter);
+  const violinVibrato = new Tone.Vibrato(5.0, 0.055).connect(violinFilter);
 
   const violin1Synth = new Tone.PolySynth(Tone.Synth, {
     oscillator: {
       type: "custom",
-      partials: [1, 0.80, 0.62, 0.46, 0.32, 0.20, 0.11]
+      partials: [1, 0.72, 0.50, 0.34, 0.20, 0.11, 0.05]
     },
     envelope: {
-      attack: 0.075,
-      decay: 0.14,
-      sustain: 0.86,
-      release: 0.24
+      attack: 0.08,
+      decay: 0.15,
+      sustain: 0.82,
+      release: 0.25
     }
   }).connect(violinVibrato);
 
   const violin2Synth = new Tone.PolySynth(Tone.Synth, {
     oscillator: {
       type: "custom",
-      partials: [1, 0.85, 0.68, 0.52, 0.36, 0.24, 0.14]
+      partials: [1, 0.76, 0.55, 0.38, 0.24, 0.14, 0.07]
     },
     envelope: {
-      attack: 0.07,
-      decay: 0.14,
-      sustain: 0.88,
-      release: 0.24
+      attack: 0.075,
+      decay: 0.15,
+      sustain: 0.85,
+      release: 0.25
     }
   }).connect(violinVibrato);
 
@@ -1066,19 +1281,20 @@ function initApp() {
     try { violin2Synth.releaseAll(); } catch (e) {}
   }
 
-  /* Balance de volúmenes según si el pentagrama de Violín está seleccionado */
+  /* Balance de volúmenes:
+     - Con violín activo: piano un poco más presente (-5 dB), voz baja (-19 dB),
+       violín más suave y limpio sin pasar nunca de 0 dB (-6 dB y -3 dB). */
   function updateAudioMix() {
     if (violinMode) {
-      // Baja el volumen del teclado y la voz, y deja más fuerte el violín (especialmente violín 2)
       pianoSampler.volume.value = -5;
       pianoFallbackSynth.volume.value = -10;
-      melodySynth.volume.value = -3;
-      violin1Synth.volume.value = -1;
-      violin2Synth.volume.value = 2.5;
+      melodySynth.volume.value = -19;
+      violin1Synth.volume.value = -6;
+      violin2Synth.volume.value = -3;
     } else {
-      pianoSampler.volume.value = 1;
-      pianoFallbackSynth.volume.value = -4;
-      melodySynth.volume.value = -3;
+      pianoSampler.volume.value = 0;
+      pianoFallbackSynth.volume.value = -5;
+      melodySynth.volume.value = -8;
       violin1Synth.volume.value = -Infinity;
       violin2Synth.volume.value = -Infinity;
       releaseAllViolin();
@@ -1092,11 +1308,11 @@ function initApp() {
     pitchDecay: 0.008,
     octaves: 2,
     envelope: { attack: 0.001, decay: 0.07, sustain: 0, release: 0.01 }
-  }).toDestination();
+  }).connect(masterLimiter);
   clickSynth.volume.value = -13;
 
   /* ============================================================================
-     4. CARGA DE MIDIS, SEPARACIÓN DE MANOS Y DETECCIÓN DE ACORDES CADA 3 PULSOS
+     4. CARGA DE MIDIS, SEPARACIÓN DE MANOS, ACORDES Y DETECCIÓN DE PARTE 2
      ============================================================================ */
   let song = {
     leftNotes: [],
@@ -1105,6 +1321,7 @@ function initApp() {
     violinNotes: [],
     hasViolinMidi: false,
     chords: [],
+    part2StartBeat: 63,
     bpm: 100,
     num: 3,
     lead: 3,
@@ -1140,7 +1357,6 @@ function initApp() {
     return out.sort((a, b) => a.startBeatRaw - b.startBeatRaw);
   }
 
-  /* Extrae pistas de violín diferenciando Violín 1 y Violín 2 si hay 2 pistas */
   function extractViolinRawNotes(violinMidi) {
     const out = [];
     if (!violinMidi) return out;
@@ -1150,8 +1366,6 @@ function initApp() {
     );
 
     validTracks.forEach((tr, trackIdx) => {
-      // Si hay 1 sola pista, se asigna a Violín 2 (protagonista fuerte).
-      // Si hay 2 o más pistas, pista 0 = Violín 1 y pista 1+ = Violín 2 (más fuerte).
       const voice = validTracks.length === 1 ? 2 : (trackIdx === 0 ? 1 : 2);
       tr.notes.forEach(n => {
         out.push({
@@ -1159,7 +1373,7 @@ function initApp() {
           voice,
           startBeatRaw: n.ticks / ppq,
           durBeats: Math.max(0.08, n.durationTicks / ppq),
-          vel: n.velocity || 0.85
+          vel: n.velocity || 0.8
         });
       });
     });
@@ -1167,7 +1381,6 @@ function initApp() {
     return out.sort((a, b) => a.startBeatRaw - b.startBeatRaw);
   }
 
-  /* Separa automáticamente un único MIDI de piano (MuseScore) en mano izquierda y derecha */
   function splitPianoHands(pianoMidi) {
     if (!pianoMidi) return { leftRaw: [], rightRaw: [] };
     const ppq = pianoMidi.header.ppq || 480;
@@ -1232,11 +1445,52 @@ function initApp() {
   }
 
   /**
+   * Detecta el inicio exacto de la 2ª parte (~segundo 36), donde el piano
+   * pasa a tocar acordes fijos y de golpe (ej. do, do-mi-sol // fa, do-fa-la).
+   */
+  function detectPart2StartBeat(leftNotes, rightNotes, bpm, leadBeats) {
+    const spb = 60 / bpm;
+    const targetBeat = SEGUNDO_INICIO_PARTE_2 / spb;
+    const approxMeasureIdx = Math.max(1, Math.round((targetBeat - leadBeats) / PULSOS_POR_ACORDE));
+    const fallbackBeat = leadBeats + approxMeasureIdx * PULSOS_POR_ACORDE;
+
+    const pianoAll = [...leftNotes, ...rightNotes].sort((a, b) => a.startBeat - b.startBeat);
+    if (!pianoAll.length) return fallbackBeat;
+
+    // Buscar en una ventana cercana al segundo 36 (entre 31s y 41s) el primer compás
+    // donde aparezcan ataques simultáneos de acordes (>= 2 notas al mismo tiempo)
+    const minBeatSearch = 31 / spb;
+    const maxBeatSearch = 41 / spb;
+
+    for (let i = 0; i < pianoAll.length; i++) {
+      const b = pianoAll[i].startBeat;
+      if (b < minBeatSearch) continue;
+      if (b > maxBeatSearch) break;
+
+      let simultaneousCount = 1;
+      for (let j = i + 1; j < pianoAll.length; j++) {
+        if (Math.abs(pianoAll[j].startBeat - b) < 0.05) {
+          simultaneousCount++;
+        } else {
+          break;
+        }
+      }
+
+      if (simultaneousCount >= 2) {
+        const relBeat = Math.max(0, b - leadBeats);
+        const measureIdx = Math.floor((relBeat + 0.1) / PULSOS_POR_ACORDE);
+        return leadBeats + measureIdx * PULSOS_POR_ACORDE;
+      }
+    }
+
+    return fallbackBeat;
+  }
+
+  /**
    * Construye la línea de tiempo de acordes agrupados de 3 pulsos en 3 pulsos:
-   * - En cada bloque de 3 pulsos (pulsos 1, 2 y 3), lee la nota fundamental del
-   *   primer ataque del bloque (pulso 1).
-   * - Todos los 3 pulsos pertenecen a ese mismo acorde.
-   * - Solo se registra cuando aparece por primera vez o cambia a un acorde distinto.
+   * - Funciona tanto en la 1ª parte (arpegiada) como en la 2ª parte (bajo + acordes
+   *   fijos de golpe: do + do-mi-sol, fa + do-fa-la, etc.), leyendo la fundamental
+   *   del primer pulso de cada bloque de 3 pulsos.
    */
   function buildChordTimeline(leftNotes, rightNotes, leadBeats) {
     if (ACORDES_MANUALES.length > 0) {
@@ -1268,11 +1522,12 @@ function initApp() {
       return timeline;
     }
 
-    const sourceNotes = leftNotes.length > 0 ? leftNotes : rightNotes;
-    if (!sourceNotes.length) return [];
+    // Combinar ambas manos para leer la nota más grave en el pulso 1 de cada compás de 3 pulsos
+    const combinedPiano = [...leftNotes, ...rightNotes].sort((a, b) => a.startBeat - b.startBeat);
+    if (!combinedPiano.length) return [];
 
     const blocks = new Map();
-    for (const n of sourceNotes) {
+    for (const n of combinedPiano) {
       const relBeat = Math.max(0, n.startBeat - leadBeats);
       const blockIdx = Math.floor((relBeat + 0.05) / PULSOS_POR_ACORDE);
 
@@ -1323,7 +1578,7 @@ function initApp() {
       ? refMidi.header.timeSignatures[0].timeSignature[0]
       : PULSOS_POR_ACORDE;
     const num = Math.min(Math.max(rawNum || PULSOS_POR_ACORDE, 2), 6);
-    const lead = PULSOS_POR_ACORDE; // 1 compás de 3 pulsos de preparación visual
+    const lead = PULSOS_POR_ACORDE;
 
     let leftRaw = [];
     let rightRaw = [];
@@ -1356,6 +1611,7 @@ function initApp() {
     const violinNotes = mapHandNotes(violinRaw, "violin");
 
     const chords = buildChordTimeline(leftNotes, rightNotes, lead);
+    const part2StartBeat = detectPart2StartBeat(leftNotes, rightNotes, bpm, lead);
 
     const allNotes = [...melodyNotes, ...leftNotes, ...rightNotes, ...violinNotes];
     const maxBeat = allNotes.reduce((acc, n) => Math.max(acc, n.startBeat + n.durBeats), lead + 3);
@@ -1367,6 +1623,7 @@ function initApp() {
       violinNotes,
       hasViolinMidi: violinNotes.length > 0,
       chords,
+      part2StartBeat,
       bpm,
       num,
       lead,
@@ -1390,11 +1647,11 @@ function initApp() {
       const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.94));
       T.schedule(time => {
         const dSec = Math.max(new Tone.Ticks(durTicks).toSeconds(), 0.10);
-        triggerPianoNote(n.midi, dSec, time, n.vel * 0.92);
+        triggerPianoNote(n.midi, dSec, time, n.vel * 0.90);
       }, startTicks + "i");
     });
 
-    // Violín (solo suena cuando violinMode está seleccionado)
+    // Violín (suave y sin saturar)
     violinNotes.forEach(n => {
       const startTicks = Math.round(n.startBeat * ppq);
       const durTicks = Math.max(24, Math.round(n.durBeats * ppq * 0.96));
@@ -1403,9 +1660,9 @@ function initApp() {
         const dSec = Math.max(new Tone.Ticks(durTicks).toSeconds(), 0.10);
         const freq = Tone.Frequency(n.midi, "midi").toFrequency();
         if (n.voice === 2) {
-          violin2Synth.triggerAttackRelease(freq, dSec, time, Math.min(1, n.vel * 1.05));
+          violin2Synth.triggerAttackRelease(freq, dSec, time, Math.min(0.86, n.vel * 0.85));
         } else {
-          violin1Synth.triggerAttackRelease(freq, dSec, time, n.vel * 0.82);
+          violin1Synth.triggerAttackRelease(freq, dSec, time, Math.min(0.75, n.vel * 0.72));
         }
       }, startTicks + "i");
     });
@@ -1422,6 +1679,7 @@ function initApp() {
     el("seek").max = song.endBeat;
     el("seek").value = 0;
     updateChordDisplay(0);
+    updateStrummingAnimation(0, false);
   }
 
   async function loadAllMidis() {
@@ -1465,9 +1723,38 @@ function initApp() {
   }
 
   /* ============================================================================
-     5. BARRA DE ACORDES SUPERIOR + DIAGRAMA DE UKELELE
+     5. BARRA DE ACORDES + ANIMACIÓN DE PULSO 1-2-3 EN RASGUEO DE UKELELE
      ============================================================================ */
   let lastRenderedChord = "";
+  let lastStrumState = "";
+
+  function updateStrummingAnimation(beat, isPlaying) {
+    const isPart2 = beat >= (song.part2StartBeat - 0.04);
+    const activePartNum = isPart2 ? 2 : 1;
+
+    // Pulso cíclico 1 -> 2 -> 3 -> 1 sincronizado con el compás de 3 tiempos
+    const pulseNum = isPlaying ? (Math.floor(((beat % PULSOS_POR_ACORDE) + PULSOS_POR_ACORDE) % PULSOS_POR_ACORDE) + 1) : 0;
+    const stateKey = `${activePartNum}:${pulseNum}`;
+
+    if (lastStrumState === stateKey) return;
+    lastStrumState = stateKey;
+
+    const card1 = el("strum-part-1");
+    const card2 = el("strum-part-2");
+    if (card1 && card2) {
+      card1.classList.toggle("is-active-part", activePartNum === 1);
+      card2.classList.toggle("is-active-part", activePartNum === 2);
+    }
+
+    for (let p = 1; p <= 2; p++) {
+      for (let step = 1; step <= 3; step++) {
+        const node = el(`p${p}-step-${step}`);
+        if (node) {
+          node.classList.toggle("is-lit", p === activePartNum && step === pulseNum);
+        }
+      }
+    }
+  }
 
   function updateChordDisplay(beat) {
     const curEl = el("chord-current");
@@ -1526,7 +1813,7 @@ function initApp() {
   }
 
   /* ============================================================================
-     6. CONTROLES DE REPRODUCCIÓN, VIOLÍN OPCIONAL, VELOCIDAD Y PANTALLA COMPLETA
+     6. CONTROLES DE REPRODUCCIÓN, UKELELE, VIOLÍN, VELOCIDAD Y PANTALLA COMPLETA
      ============================================================================ */
   const ticksNow = () => Tone.Transport.getTicksAtTime(Tone.getContext().currentTime);
   const getBeat = () => (Tone.Transport.state === "started" ? ticksNow() : posTicks) / Tone.Transport.PPQ;
@@ -1546,7 +1833,9 @@ function initApp() {
     setPlayButtonState(false);
     el("seek").value = 0;
     lastRenderedChord = "";
+    lastStrumState = "";
     updateChordDisplay(0);
+    updateStrummingAnimation(0, false);
   }
 
   el("play").addEventListener("click", async () => {
@@ -1567,6 +1856,16 @@ function initApp() {
   });
 
   el("stop").addEventListener("click", resetPlayback);
+
+  /* Botón opcional de Ukelele (igual que el de Violín) */
+  const ukeBtn = el("toggle-ukulele");
+  const ukePanel = el("ukulele-panel");
+  ukeBtn.addEventListener("click", () => {
+    ukuleleMode = !ukuleleMode;
+    ukeBtn.setAttribute("aria-pressed", String(ukuleleMode));
+    ukePanel.classList.toggle("is-hidden", !ukuleleMode);
+    requestAnimationFrame(resize);
+  });
 
   /* Botón opcional de pentagrama de violín */
   const violinBtn = el("toggle-violin");
@@ -1712,7 +2011,6 @@ function initApp() {
     const isLandscapeMobile = H < 500 && W > H;
 
     if (violinMode) {
-      // Al seleccionar el violín, el teclado sube y deja espacio inferior al pentagrama
       if (isPortraitMobile) {
         L.staffH = Math.max(105, Math.min(138, Math.round(H * 0.26)));
         L.keyH   = Math.max(85,  Math.min(120, Math.round(H * 0.21)));
@@ -1771,7 +2069,6 @@ function initApp() {
   window.addEventListener("resize", resize);
   resize();
 
-  /* Permite tocar las teclas del piano directamente en pantalla */
   let manualPressedMidi = null;
 
   function findKeyAtPoint(px, py) {
@@ -1833,7 +2130,6 @@ function initApp() {
       ctx.stroke();
     }
 
-    // Líneas horizontales cada 3 pulsos (cada bloque de acorde)
     const m = PULSOS_POR_ACORDE;
     const maxVisibleBeat = beat + L.fallH / L.pxPerBeat + 1;
     let b = Math.max(0, Math.floor(beat / m) * m);
@@ -1933,7 +2229,6 @@ function initApp() {
   function drawPianoKeyboard(activeHandsByMidi) {
     const topY = L.fallH;
 
-    // 1. 16 teclas blancas (A2 a B4)
     for (const wk of WHITE_KEYS) {
       const hand = activeHandsByMidi.get(wk.midi);
       const isManual = manualPressedMidi === wk.midi;
@@ -1960,7 +2255,6 @@ function initApp() {
       }
     }
 
-    // 2. 11 teclas negras (con Sib en lugar de La#)
     for (const bk of BLACK_KEYS) {
       const hand = activeHandsByMidi.get(bk.midi);
       const isManual = manualPressedMidi === bk.midi;
@@ -1989,7 +2283,6 @@ function initApp() {
       ctx.restore();
     }
 
-    // 3. Línea de impacto luminosa superior
     ctx.fillStyle = "#4F46E5";
     ctx.fillRect(0, topY - 2, W, 3);
   }
@@ -1997,27 +2290,25 @@ function initApp() {
   /* ============================================================================
      8. PENTAGRAMA DE VIOLÍN (CLAVE DE SOL, DESPLAZAMIENTO HORIZONTAL)
      ============================================================================ */
-  // Mapeo diatónico en Clave de Sol (0 = línea inferior E4, 8 = línea superior F5)
   const PC_TO_STAFF_INFO = {
-    0:  { step: 0, acc: ""  }, // Do
-    1:  { step: 0, acc: "♯" }, // Do#
-    2:  { step: 1, acc: ""  }, // Re
-    3:  { step: 2, acc: "♭" }, // Mib
-    4:  { step: 2, acc: ""  }, // Mi
-    5:  { step: 3, acc: ""  }, // Fa
-    6:  { step: 3, acc: "♯" }, // Fa#
-    7:  { step: 4, acc: ""  }, // Sol
-    8:  { step: 4, acc: "♯" }, // Sol#
-    9:  { step: 5, acc: ""  }, // La
-    10: { step: 6, acc: "♭" }, // Sib
-    11: { step: 6, acc: ""  }  // Si
+    0:  { step: 0, acc: ""  },
+    1:  { step: 0, acc: "♯" },
+    2:  { step: 1, acc: ""  },
+    3:  { step: 2, acc: "♭" },
+    4:  { step: 2, acc: ""  },
+    5:  { step: 3, acc: ""  },
+    6:  { step: 3, acc: "♯" },
+    7:  { step: 4, acc: ""  },
+    8:  { step: 4, acc: "♯" },
+    9:  { step: 5, acc: ""  },
+    10: { step: 6, acc: "♭" },
+    11: { step: 6, acc: ""  }
   };
 
   function midiToTrebleStep(midi) {
     const pc = ((midi % 12) + 12) % 12;
     const octave = Math.floor(midi / 12) - 1;
     const info = PC_TO_STAFF_INFO[pc];
-    // E4 (midi 64) => octave 4, step 2 => base = 4*7 + 2 = 30
     const absStep = octave * 7 + info.step - 30;
     return { step: absStep, acc: info.acc, pc };
   }
@@ -2033,21 +2324,17 @@ function initApp() {
     ctx.rect(0, staffTop, W, staffH);
     ctx.clip();
 
-    // Fondo claro tipo partitura
     ctx.fillStyle = "#FFFDF9";
     ctx.fillRect(0, staffTop, W, staffH);
 
-    // Borde superior separador respecto al teclado
     ctx.fillStyle = "#7C3AED";
     ctx.fillRect(0, staffTop, W, 3);
 
-    // Geometría de las 5 líneas del pentagrama
     const lineGap = Math.max(7.5, Math.min(11.5, staffH * 0.082));
     const halfStep = lineGap / 2;
-    const bottomLineY = staffTop + staffH * 0.66; // Línea 1 (E4)
-    const topLineY = bottomLineY - 4 * lineGap;   // Línea 5 (F5)
+    const bottomLineY = staffTop + staffH * 0.66;
+    const topLineY = bottomLineY - 4 * lineGap;
 
-    // Dibujar las 5 líneas del pentagrama
     ctx.strokeStyle = "#94A3B8";
     ctx.lineWidth = 1.15;
     for (let i = 0; i < 5; i++) {
@@ -2062,7 +2349,6 @@ function initApp() {
     const playheadX = Math.min(92, Math.max(72, W * 0.12));
     const staffPxPerBeat = Math.max(54, Math.min(96, W / 10.5));
 
-    // Barras divisorias de compás (cada 3 pulsos)
     const m = PULSOS_POR_ACORDE;
     const minBeatVisible = beat - (playheadX - clefAreaW) / staffPxPerBeat - 1;
     const maxBeatVisible = beat + (W - playheadX) / staffPxPerBeat + 2;
@@ -2087,7 +2373,6 @@ function initApp() {
       }
     }
 
-    // Si no se encontró violin.mid, mostrar aviso claro
     if (!song.hasViolinMidi) {
       ctx.fillStyle = "#6D28D9";
       ctx.font = "800 13px 'Nunito', sans-serif";
@@ -2095,7 +2380,6 @@ function initApp() {
       ctx.textBaseline = "middle";
       ctx.fillText("Coloca el archivo ./midis/violin.mid para ver y escuchar el pentagrama de violín", W / 2 + 20, (topLineY + bottomLineY) / 2);
     } else {
-      // Dibujar las notas del violín desplazándose horizontalmente hacia el cursor
       const rx = lineGap * 0.62;
       const ry = lineGap * 0.46;
 
@@ -2115,13 +2399,11 @@ function initApp() {
           ? "#DC2626"
           : (isVoice2 ? "#6D28D9" : "#0F766E");
 
-        // Barra horizontal sutil de duración
         const durW = Math.max(rx * 2, n.durBeats * staffPxPerBeat - 4);
         ctx.fillStyle = isActive ? "rgba(220, 38, 38, 0.16)" : "rgba(124, 58, 237, 0.10)";
         roundRectPath(nx - rx, ny - ry * 0.8, durW, ry * 1.6, 4);
         ctx.fill();
 
-        // Líneas adicionales (ledger lines) por debajo de E4 (step <= -2) o por encima de F5 (step >= 10)
         ctx.strokeStyle = "#64748B";
         ctx.lineWidth = 1.2;
         if (step <= -2) {
@@ -2142,7 +2424,6 @@ function initApp() {
           }
         }
 
-        // Alteración (♯ o ♭) a la izquierda de la cabeza de nota
         if (acc) {
           ctx.fillStyle = noteColor;
           ctx.font = `800 ${Math.round(lineGap * 1.35)}px 'Nunito', sans-serif`;
@@ -2151,8 +2432,7 @@ function initApp() {
           ctx.fillText(acc, nx - rx - 2, ny);
         }
 
-        // Cabeza de nota (óvalo ligeramente inclinado)
-        const isHollow = n.durBeats >= 1.75; // Blanca o blanca con puntillo
+        const isHollow = n.durBeats >= 1.75;
         ctx.save();
         ctx.translate(nx, ny);
         ctx.rotate(-0.28);
@@ -2170,7 +2450,6 @@ function initApp() {
         }
         ctx.restore();
 
-        // Puntillo si dura ~3 pulsos (blanca con puntillo)
         if (n.durBeats >= 2.75 && n.durBeats <= 3.3) {
           ctx.fillStyle = noteColor;
           ctx.beginPath();
@@ -2178,10 +2457,9 @@ function initApp() {
           ctx.fill();
         }
 
-        // Plica (stem) para figuras menores a redonda (< 3.75 pulsos)
         if (n.durBeats < 3.75) {
           const stemH = lineGap * 2.85;
-          const stemUp = step < 4; // Hacia arriba por debajo de Si4, hacia abajo desde Si4
+          const stemUp = step < 4;
           ctx.strokeStyle = noteColor;
           ctx.lineWidth = 1.5;
           ctx.beginPath();
@@ -2194,7 +2472,6 @@ function initApp() {
           }
           ctx.stroke();
 
-          // Corchete si dura <= 0.6 pulsos
           if (n.durBeats <= 0.6) {
             ctx.beginPath();
             if (stemUp) {
@@ -2208,7 +2485,6 @@ function initApp() {
           }
         }
 
-        // Nombre de la nota debajo del pentagrama para lectura rápida
         if (staffH >= 96) {
           const labelY = Math.min(staffTop + staffH - 4, Math.max(bottomLineY + lineGap * 1.6, ny + lineGap * 1.45));
           ctx.fillStyle = isActive ? "#DC2626" : "#475569";
@@ -2220,7 +2496,6 @@ function initApp() {
       }
     }
 
-    // Cursor vertical de lectura actual (playhead)
     ctx.strokeStyle = "#EF4444";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -2228,7 +2503,6 @@ function initApp() {
     ctx.lineTo(playheadX, staffTop + staffH - 4);
     ctx.stroke();
 
-    // Cabecera izquierda fija con Clave de Sol (𝄞)
     ctx.fillStyle = "#F8FAFC";
     ctx.fillRect(0, staffTop + 3, clefAreaW, staffH - 3);
     ctx.strokeStyle = "#E2E8F0";
@@ -2238,7 +2512,6 @@ function initApp() {
     ctx.lineTo(clefAreaW, staffTop + staffH);
     ctx.stroke();
 
-    // Redibujar las 5 líneas dentro de la cabecera de clave
     ctx.strokeStyle = "#94A3B8";
     ctx.lineWidth = 1.15;
     for (let i = 0; i < 5; i++) {
@@ -2249,14 +2522,12 @@ function initApp() {
       ctx.stroke();
     }
 
-    // Símbolo de Clave de Sol
     ctx.fillStyle = "#1E293B";
     ctx.font = `${Math.round(lineGap * 5.2)}px serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("𝄞", 24, bottomLineY - lineGap * 1.85);
 
-    // Etiqueta discreta "Violín"
     ctx.fillStyle = "#7C3AED";
     ctx.font = "800 9.5px 'Nunito', sans-serif";
     ctx.textAlign = "center";
@@ -2273,12 +2544,14 @@ function initApp() {
 
   function frame() {
     const beat = getBeat() || 0;
+    const isPlaying = Tone.Transport.state === "started";
 
     drawBackgroundGrid(beat);
     const activeHands = drawFallingNotes(beat);
     drawPianoKeyboard(activeHands);
     drawViolinStaff(beat);
     updateChordDisplay(beat);
+    updateStrummingAnimation(beat, isPlaying);
 
     if (song.loaded) {
       const spb = 60 / (song.bpm * speed);
@@ -2289,7 +2562,7 @@ function initApp() {
       }
     }
 
-    if (Tone.Transport.state === "started" && beat > song.endBeat) {
+    if (isPlaying && beat > song.endBeat) {
       resetPlayback();
     }
 
